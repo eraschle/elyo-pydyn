@@ -1,0 +1,219 @@
+
+* Dynamo BIM / Python Package
+** Was ist Dynamo BIM
+
+Es ist eine Visuelle Skript Sprache um Abläufe zu vereinfache bzw. zu Automatisieren.
+Neben vordefinierten Blöcken, welche eine vordefinierte Aufgabe abarbeiten, gibt es Python Blöcke um Code zu schreiben oder importieren.
+Bei kommenden Versionswechsel der Autorensoft, wird die Engine von =IronPython 2.7= auf =CPythen 3=.8 geändert.
+Obwohl IronPython für eine kurze Zeit noch Unterstützt wird, muss der Code angepast werden und an den neuen Syntax angepasst werden.
+
+** Dynamo Python Editor
+Der Python Editor hebt sich abgesehen von farblichen Hervorhebungen (=def=) oder *fetten* Schreibeweise bei Funktionsaufrufen,
+kaum mehr zu bieten als ein Editor aus der Uhrzeit des Computer. Er kann einfach nur Text bearbeiten und mehr nicht.
+Was zum Teil in ziemlich ausgedehnten Suche der Stecknadel im Heuhaufen geführt, da sich schon mal ein paar hundert Zeilen in einem
+befinden und die Fehlermeldung nur war, dass es den Code evaluieren kann...
+
+Deshalb eine IDE schon immer ein Thema. Aktuell ist die Lösung Copy/Past zwischen IDE und Dynamo. Dies Hilft zwar bereits ein wenig,
+ist aber Fehleranfällig und nicht zufriedenstellend.
+Der Code in den Skripten kann zwar durch dass Öffnen (vscode) der Skript-Datei gelesen werden, weil es um JSON Datei mit geänderter Extension handelt.
+Weshalb der gespeicherte Code durch das =Escapen= von Sonderzeichen (~" ' \ Zeilenumbruch, Tabulatoren~) in einer Linien geschrieben.
+
+Dadurch der Einsatz von GIT auch keinen Sinn macht, weil man die Differenzen nicht sehen kann. Zudem speichert der verwendete Writer
+die Keys der Dictionaries immer wieder in unterschiedlicher Reihenfolge ab, weshalb die kleinen, aber wichtigen Änderungen im Code
+oder dem Skript kaum erkennen lässt.
+* Warum dieser Minor Mode
+** Dynamo zu Python
+*** Tastenkombinationen
+- Aktuell NUR Konvertierung-Funktionen.
+- Noch keine Idee was in der Dynamo/JSON Datei interessant sein könnte
+*** Funktionen
+**** Python Block zu Python
+Zuerst wird überprüft, ob es sich um eine Python Block handel, wenn es ein Python Block ist, start der Konverter und erstellt eine Python Datei.
+Wenn es keine Python Node ist, dann wird, wenn überhaupt, eine kleine Nachricht ausgegeben.
+
+**** Alle Python Blöcke eines Skript
+**** Alle Python Blöcke aller Skripts in einem Verzeichnis.
+**** Python Code der Node an dem sich der Cursor befindet,
+** Python zu Dynamo
+*** Tastenkombinationen
+- Viele der Funktionen sind als Tastenkombination verfügbar,
+  wenn eine exportierte Python Datei geöffnet ist
+- Entweder unter C+c C+y C+e plus Buchstaben aus dem Menü (Kann angepasst werden)
+- Wenn =Doom/Emacs= installiert, dann können diese als =Localleader= (SPC + m) hinzugefügt werden.
+  + Aktuell; SPC + m + y plus ein Buchstabe aus dem Menü...
+*** Konvertierungen
+**** Die aktuelle Datei im Skript ersetzen
+**** Alle Python Dateien, aus dem gleichen Skript.
+**** Alle Skript in einem Verzeichnis
+*** Funktionen
+**** Aufbereiten währen des Imports
+***** Bekannte und nicht lösbare Probleme maskieren (=# type: ignore=)
+- =IN[0]=: Alle Interpreter geben ein Fehler aus, weil die Variable nie erstellt wurde.
+- =from Autodesk...Revit=: Wird von der IDE nie erkannt
+- =UnwrapElement=: Zwar wichtig für das Skript, aber bis anhin keine Definition gefunden..
+- =Enum=: Aus Systems kann nicht gefunden werden in den Stubs.
+- =Und noch mehr, aber immer ähnlich=
+***** Zeilen die keiner Braucht
+Hier die aktuell definierten Zeilen:
+Diese werden des Konvertieren von Dynamo nach Revit für immer gelöscht. Andere können hinzugefügt werden.
+
+#+begin_src python
+ "# Load the Python Standard"
+ "Phython-Standard- und DesignScript-Bibliotheken laden"
+ "# The inputs to this node will be stored"
+ "Die Eingaben für diesen Block werden in Form einer Liste in den IN-Variablen gespeichert."
+ "dataEnteringNode = IN"
+ "Assign your output to the OUT variable."
+ "Weisen Sie Ihre Ausgabe der OUT-Variablen zu."
+#+end_src
+
+***** Inputs, werden ausgerichtet (automatisch)
+- Unwichtig, sieht aber gut aus!! Kleines Beispiel...
+- Formatter findet dies nicht PEP8 konform und formatiert die Zeilen wieder um.
+- Wenn die Idee da ist und Zeit um auszuprobieren, wird dies ein Feature sein.
+
+#+begin_src  python
+ELemente = IN[0]
+Cats     = IN[1]
+#+end_src
+
+**** Erstellte Funktionen
+***** Zeige den Code in der originalen Dynamo-Datei.
+Öffnet Dynamo Datei und springt zum Code unter dem Cursor, als die Funktionen aufgerufen wird.
+***** Suche nach Referenzen Benutzerdefinierten Block
+- Python Code eines Benutzerdefinierten Block muss aktiv sein
+- Funktion findet alle Dynamo Skript in welcher der Block verwendet wird
+***** Löschen von Kommentaren
+****** TypeChecker
+- Toggle vom Kommentar
+- Hinzufügen oder Löschen
+****** Formatter
+- Oberhalb / Unterhalb markierter Bereich hinzufügen
+- Löschen der Region in der sich der Cursor befindet
+**** Formatieren (Autopep8)
+Der restliche Inhalt wird zufriedenstellen formatiert
+***** IDEA Formatierung steuern (=autopep8: on / off=)
+Mit einer neu erstellte Tastenkombination, kann ein vorher markierter Bereich
+von der Formatierung ausgeschlossen werden.
+***** BCKL Installiert, aber noch über Konfiguration nachlesen.
+***** BCKL Aktuell werden LEIDER immer alle TABs in SPACEs umgewandelt.
++ Bei Python spielt die Einrückung und das Zeichen eine Wichtige rolle.
++ Wenn der Code nach Dynamo geschrieben wird, werden die Zeichen ein letztes Mal angepasst.
+  In diesen Schritten ist der Formatter nicht aktiv, weshalb sichergestellt werden kann,
+  dass das Format von Python demjenigen von Dynamo entspricht...
+*** Intelligence
+**** Setzen und Anzeigen der Python Version
+- Ab und zu funktioniert es nicht...
+- Schlussendlich nicht so wichtig:
+  + Die Engine der Software wird verwendet beim ausführen
+  + Python2 Packages sind kaum mehr zu installieren, weil der
+    Support eingestellt wurde.
+
+**** BCKL Revit API
+- Bei weitem nicht alle, aber Elemente werden erkannt. Es werden viele Elemente, erkannt und mal besser, mal schlechter
+  die verfügbaren Methoden und Properties angezeigt.
+- Bereits sind ein paar =Revit 2024= vorhanden und haben eine Intelligenz.
+***** BCKL Stubs verbessern (Wenn möglich)
+****** BCKL Wie können Stubs selber generiert werden
+****** BCKL Gibt es aktuelle Version zum Downloaden
+**** Linter / Type-Checker
+Aktuell werden je nach installiertem =LSP= Server sehr viele oder kaum welche Fehler/Warnungen angezeigt.
+~Bei diesem Thema bin ich noch unsicher, wenn sich jemand auskennt und gerne Informationen austauschen will,
+dann würde mich darüber freuen~
+***** Nicht verwendete Variablen
+Nicht verwendete Variablen werden erkannt und hervorgehoben
+***** Nicht benötigte Importe
+Nicht verwendete Importe werden erkannt und hervorgehoben
+***** BCKL Konfiguration vertiefen
+****** BCKL Welche Fehler sind Wichtig?
+****** BCKL Wie können diese Konfiguriert werden?
+**** Rename, Goto Definition, Referenece...
+Die Funktionen funktionieren, aber nur der aktuell geöffneten Datei. Jedenfalls sind alle anderen
+Referencen fragwürdig, da die Dateien noch ohne eine Zentrale Umgebung erstellt wurden.
+* Zukunft
+** BCKL Ablage
+*** GIT-Repo erstellen mit Python Code
+- Macht es Sinn den Code einchecken...
+- Das Skript muss immer die Quelle der Wahrheit bleiben.
+- Weshalb eingecheckter Code irreführend sein kann
+*** Ablage zusammen mit dem Skript?
+*** Alles in einem Ordner...!
+Ein Gedanke, nichts weiter...
+- Könnte von Vorteil sein
+  * Das eigentliche Dynamo Skript
+  * Die exportierten Python Codes aus dem Skript
+  * Eine Notiz / Dokumentation des Skripts...
+    * Bei Fragen müsste man, sofern die Information vorhanden ist, nicht lange suchen und fragen
+- Die Software sollten das zugrundeliegende Chaos gut meistern können.
+  + Dynamo zeigt zB nur die Skripte an
+  + VsCode kann so eingestellt werden, nur die Python Dateien anzuzeigen
+  + Im Explorer hat man den kompletten Überblick, wenn nötig...
+  + SW der Doku??? =Confluence=
+
+** BCKL Automatisiertes Anpassen von Code [0/3]
+So wie beim Export zu Python kann mit der Konvertierung und den Möglichkeiten von Emacs/Doom
+Sicher einige Dinge automatisiert abgearbeitet werden.
+*** BCKL Umwandlung von Python 2.7 zu Python 3.8 [0/0]
+*** BCKL Einfügen erweiterter Module und Package Sucheinstellungen [0/0]
+In jedem den Pfad zu internen Umgebung einfügen, damit eigene Module in Dynamo genutzt werden können
+#+begin_src python
+import sys
+sys.path.append(os.getenv(PYTHONPATH))
+#+end_src
+
+Oder so...
+#+begin_src python
+import sys
+import os
+internal_module =os.getenv(SOME_INTERNAL_VARIABLE)
+if os.path.exists(internal_module):
+    sys.path.append(internal_module)
+#+end_src
+*** BCKL Importe anpassen... [0/0]
+In vielen Skripten werden immer alle Objekte der Bibliothek geladen, weil =import *= verwendet wird.
+
+#+begin_src python
+import clr
+import sys
+
+#RevitAPI
+clr.AddReference("RevitAPI")
+from Autodesk.Revit.DB import *
+
+#RevitAPI
+clr.AddReference("RevitNodes")
+import Revit
+clr.ImportExtensions(Revit.Elements)  # type: ignore
+
+Params = IN[0]  # type: ignore
+Elements = UnwrapElement(IN[1])  # type: ignore
+#+end_src
+
+**** Offene Fragen [0/0]
+***** Wie können die Meldungen per =emacs-lisp= ausgewertet werden?? [0/0]
+- Mit welchen Event, werden welche Meldungen/Informationen veröffentlicht.
+- Welche Variablen sind davon betroffen??
+***** Startegie entwerfen, wie die Daten ausgewertet werden? [0/0]
+- Welche Daten werden in welcher Form gespeichert??
+- Welche Daten sind nötig, um alle fehlenden import zu finden??
+  + Welche Elemente haben keinen Definition??
+- Kann in Stubs oder anderen Quellen die gesammelten Daten verifiziert werden??
+***** Welche Möglichkeiten im Hintergrund auszuführen [0/0]
+
+**** Provisorischer Ablauf [0/0]
+***** Bei ersten import Stern entfernen
+ undefinierten Elemente werden angezeigt und Prozess wird darüber informiert.
+****** Warten bis die Meldungen von den einzelnen Plug-Ins antreffen
+****** Nach Timeout
+- Änderung Rückgängig machen => Stern wieder einfügen
+- Zum nächsten Import * wechslen
+- Prozess beenden
+***** Gewählte Strategie anwenden und Daten auswerten...!!
+****** Daten aufbereiten validieren, Sortieren!!
+****** Gesammelte Daten einfügen.
+***** Warten, ob neue Meldungen erscheinen?
+****** Neue Fehler wurden gefunden.
+Zurück auf Start und von vorne beg  innen...
+****** Timeout oder Nichts zu tun!!
+- Weiter zum nächsten =import *=
+- Prozess beenden

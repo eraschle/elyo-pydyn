@@ -1,0 +1,10 @@
+
+
+* Tasks
+:PROPERTIES:
+:VISIBILITY:   children
+:END:
+** Namen überlegen
+** TODO Wie kann eine aktive Region zurückgegeben werden?
+Ziel: Die Region vom Benutzer mit den neu hinzugefügten Comments zu erweitern.
+[[file:~/.config/doom/lisp/elyo/elyo-python-format.el::)]]
