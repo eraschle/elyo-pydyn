@@ -1,0 +1,400 @@
+# MIT License
+
+# Copyright (c) 2024 Erich Raschle
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+* Allgemein
+** Versionen
+- Windows 10
+- WSL 2.0
+- Ubuntu 22.04
+- Emacs 28 — nativ compilation
+** Vorlagen
+
+Die Anleitungen basieren auf eigenen Erkenntnissen von mehreren Installationen.
+Die Grundlage bildeten diese und andere Konfigurationen aus dem Internet.
+- [[https://github.com/zzamboni/dot-doom][GitHub - zzamboni/dot-doom]]
+- [[https://github.com/sunnyhasija/Academic-Doom-Emacs-Config]]
+- [[https://gist.github.com/bdarcus/4c50f5c0eb49656298a9bb4c73e725ac]]
+- https://github.com/gpetrini/.doom.d
+
+** YouTube
+- [[https://www.youtube.com/c/systemcrafters][System Crafters]]
+  - Freitags gegen 18 Uhr 1+ Stunde stream
+  - Hilfreich sind Emacs from scratch Videos.
+  - Nette community, Jemand nahm sich 2h Zeit um sich die Probleme eines Anfängers anzuhören
+- [[https://www.youtube.com/@protesilaos][Protesilaos Stavrou]]
+  - Beweis, dass man Programmierer sein muss, um Gefallen an Emacs zu finden
+- [[https://www.youtube.com/@GavinFreeborn][Gavin Freeborn]]
+  - Durchaus interessant. Super Typ und sehr hilfsbereit.
+
+* WSL & Ubuntu
+** Ubuntu Packages
+Sammlung von Packages, welche entweder Dependency von  =doom doctor= oder während der Anleitung installiert werden müssen
+
+#+begin_src bash
+sudo apt update -y && sudo apt upgrade -y && sudo apt -y install git markdown shellcheck cmake graphviz fd-find cargo sbcl pandoc shfmt default-jre sqlite3 xclip xdotool x11-utils
+#+end_src
+
+** GIT
+*** gitconfig (WSL)
+
+#+begin_src bash :tangle no :exports both
+git config --global user.name "Dein Name"
+git config --global user.email "Deine Email für GIT"
+git config --global credential.helper store
+#+end_src
+
+*** Pfad spezifische Konfiguration von GIT
+**** Anleitung / original Post
+[[https://stackoverflow.com/a/43884702/23084912][Post von stackoverflow]]
+[[https://git-scm.com/docs/git-config#_includes][Anleitung-GIT]]
+>> Wenn das Muster mit =**= endet, wird es automatisch hinzugefügt. Z.B. =foo/= wird zu =foo/**=. In anderen Worten, es wird für =foo= und innerhalb (~rekursiv~) angewendet. << Verstehe ich noch nicht komplett, aber das kommende ist der wichtigere Teil.
+
+**** Beispiel mit Erklärung
+
+Inhalt =~/.gitconfig= Datei
+
+#+begin_src gitconfig
+# zB Angaben für private Anwendungen
+[user]
+    email = myalias@personal-domain.fr
+    name = bcag2
+
+# Die Arbeit wird unter dem Verzeichnis workspace/* abgespeichert und beinhaltet alle Projekte.
+[includeIf "gitdir:~/workspace/"]
+    path = .gitconfig-job
+
+# Andere Abschnitte:: core, alias, log…
+#+end_src
+
+Wenn ein Projekt sich im =/workspace/=-Ordner befindet, werden die Standard Einstellungen aus =.gitconfig= mit den Angaben aus
+=~/.gitconfig-job= überschrieben. Die ~/.gitconfig-job kann unter dem gleichen Verzeichnis abgespeichert werden.
+
+#+begin_src gitconfig
+[user]
+name = John Smith
+email = js@company.com
+#+end_src
+
+**** Aktuelle Verwendung
+
+Wenn mit Magit aus WSL1 & 2 ein Repository im mount-Laufwerk von Windows geöffnet wurde, wurden immer alle Dateien als geändert angezeigt, weil es Probleme mit =\n= und =\n\r= gab.
+Dabei wurde das GIT (inklusive Einstellungen) von Linux verwendet, was vermutlich zu weiteren Problemen geführt hat.
+
+Mit der Beschrieben Lösung kann mit einer zusätzlichen =.gitconfig=, git von Linux für die Repository unter Windows um konfiguriert werden.
+Aktuell wird nur die =line-ending= Einstellung verändert!!
+
+#+begin_src gitconfig
+[core]
+	autocrlf = true #true > Windows // input > Linux
+#+end_src
+
+** ripgrep =PCRE=-Support
+Vorgabe von DOOM, damit die Suche korrekt funktionieren.
+- ~ripgrep~ mit =PCRE-Support=.
+- Installation mit ~apt-get install~ hat =keinen PCRE-Support=.
+- Weshalb ~ripgrep~ manuell erstellt und installiert wird❕
+
+*** RUST Compiler
+
+=ripgrep= wurde in ~RUST~ geschrieben  Zuerst RUST compiler installieren.
+#+begin_src bash :tangle no
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+#+end_src
+
+Neuer und sehr schnell Linter, geschrieben in RUST, kann für Python unter LSP und glaub auch EGLOT installiert werden
+
+*** Code herunterladen
+
+GIT-Repository klonen und in USER-Home speichern  =$HOME/ripgrep=
+#+begin_src bash :tangle no
+git clone https://github.com/BurntSushi/ripgrep
+#+end_src
+
+*** Build-Command
+- In den Ordner =$HOME/ripgrep= wechseln und Build—Befehl aufführen.
+
+#+begin_src bash :tangle no
+cd ripgrep
+cargo build --release --features 'pcre2'
+#+end_src
+
+**** Fehler während des Build Vorgangs
+
+- Fehlermeldung studieren
+- Vermutlich Code auf einen früheren Stand auschecken...
+
+#+begin_src bash :tangle no
+git checkout tags/13.0.0
+#+end_src
+
+*** Überprüfung
+
+#+begin_src bash :tangle no
+./target/release/rg --version
+#+end_src
+
+*** Installieren
+- Erstellte Version von ~ripgrep~ installieren.
+- Datei ~rg~ ins Verzeichnis ~/usr/bin/~ kopieren (=bestehende Version wir überschrieben=).
+
+#+begin_src bash :tangle no
+sudo cp ./target/release/rg /usr/bin/
+#+end_src
+
+- Finale Überprüfung nach der Installation von Doom durch ~doom doctor~
+  Keine Meldung betreffend ~ripgrep~ und ~PCRE~-Unterstützung  IO.
+
+*** Aufräumen
+
+#+begin_src bash :tangle no
+rm -Rf ~/ripgrep
+#+end_src
+
+* Optional
+** Schriften
+Schriften können aus dem Internet geladen und in Doom verwendet, wenn sie in das Verzeichnis =~/.local/share/fonts= enthalten sind.
+
+#+begin_src bash :tangle no
+cd ~/.local/share/fonts
+sudo fc-cache -f -v
+#+end_src
+
+Beispiel Konfiguration zum Ändern der Schrift in Doom. Der Code muss in der config.el bzw. config.org enthalten sein
+#+begin_src emacs-lisp
+(setq doom-font (font-spec :family "iosevka comfy fixed" :size 16)
+      doom-big-font (font-spec :family "iosevka comfy fixed" :size 26)
+      doom-variable-pitch-font (font-spec :family "iosevka comfy motion"))
+#+end_src
+
+** Node.js
+
+- Alle Release von Node.js sind aus dem offiziellen APT Repository ableitbar.
+#+begin_src bash :tangle no
+sudo apt update && sudo apt -y upgrade
+sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+#+end_src
+
+- Installation von Node.js
+#+begin_src bash :tangle no
+sudo apt -y install nodejs
+#+end_src
+
+- Entwicklung Tools installieren.
+#+begin_src bash :tangle no
+sudo apt update -y && sudo apt install -y yarn
+sudo apt install -y gcc g++ make
+#+end_src
+
+** Python
+*** PyEnv
+Ermöglicht die Installation von mehreren Python Version und das Zuweisen einer Installierten Python Version zu einem Projekt.
+[[https://www.liquidweb.com/kb/how-to-install-pyenv-on-ubuntu-18-04/][Anleitung: How to Install Pyenv on Ubuntu]]
+Abhängigkeiten
+#+begin_src bash :tangle no
+sudo apt update -y && sudo apt install -y make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl git
+#+end_src
+
+Repository klonen
+#+begin_src bash :tangle no
+git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+#+end_src
+
+PATH anpassen
+#+begin_src bash :tangle no
+echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
+echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
+echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n eval "$(pyenv init -)"\nfi' >> ~/.bashrc
+exec "$SHELL"
+#+end_src
+
+~Terminal Neustart WICHTIG~
+
+Dynamo BIM verwendet meines Wissen Python 3.8 oder 3.9 je nach Authoren-Software
+#+begin_src bash :tangle no
+pyenv install --list
+
+pyenv install 3.10.8
+pyenv versions
+pyenv global 3.10.8
+pyenv rehash
+pip install --upgrade pip
+#+end_src
+
+*** Python Packages
+#+begin_src bash :tangle no
+sudo apt install -y python-is-python3 python3-venv python3-pip
+
+pip install --upgrade pip
+pip install pytest isort pipenv nose black pyflakes autopep8
+#+end_src
+
+*** Poetry (Optinal)
+Erleichtert das verwalten und Installation von pip Packages für Prjekte.
+**** [[https://python-poetry.org/docs/#installation][Installation]]
+
+#+begin_src bash :tangle no :results no
+curl -sSL https://install.python-poetry.org | python3 -
+#+end_src
+
+**** PATH-Variable
+Wenn durch den Installer die Path-Variable nicht angepasst wurde, dann muss dies manuell gemacht werden
+
+#+begin_src bash
+export PATH="$HOME/.local/share/pypoetry/venv/bin/poetry:$PATH"
+#+end_src
+
+*** PyRight
+Anstatt =mspyls= muss =pyright= als LSP Server installiert.
+Die Installation kann Global oder pro User ausgeführt werden...
+**** Globale Installation
+Benötigt die Installtion von Node.js
+#+begin_src bash
+sudo npm install -g pyright
+#+end_src
+
+**** User Installation
+Bessere Variante ist die Installation in der virtuellen Umgebung eines Projekts.
+#+begin_src bash
+pip install pyright
+#+end_src
+
+*** RuffAnalyse
+
+Neuer und sehr schnell Linter, geschrieben in RUST, kann für Python unter LSP und glaub auch EGLOT installiert werden
+Kann über pip Installiert werden
+
+* EMACS & DOOM
+** =Emacs=
+
+[[https://launchpad.net/~kelleyk/+archive/ubuntu/emacs][Übersicht vorhandener EMACS Versionen]]
+
+Ich verwende Emacs 29 und compile selber. Anleitungen sind im Internet auffindbar...
+=NATIVCOMP= verwenden, da schneller
+
+#+begin_src bash  :tangle no
+sudo apt update && sudo apt upgrade
+sudo add-apt-repository ppa:kelleyk/emacs
+sudo apt update
+sudo apt -y install emacs28-nativecomp
+#+end_src
+
+** =DOOM=
+*** Installation
+**** Doom clonen
+Mehr Informationen hier entnehmen [[https://github.com/doomemacs/doomemacs/blob/develop/docs/getting_started.org#with-wsl--ubuntu-1804-lts][Anleitung DOOM GitHub]]
+
+#+begin_src bash  :tangle no
+git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
+#+end_src
+
+**** Path anpassen
+=doom= Binary Path zu =PATH= hinzufügen. Danach das Terminal neu starten, damit die Anpassung wirksam werden
+
+#+begin_src bash  :tangle no
+vi ~/.bashrc
+export PATH="$HOME/.config/emacs/bin:$PATH"
+#+end_src
+
+**** Doom installieren
+Nun kann der Befehl ausgeführt werden, nachdem die Fragen beantwortet wurden, wird Doom installiert.
+Dies kann eine Weile daueren, sobald doom sync ausgeführt wurde, kann doom gestartet werden.
+
+#+begin_src bash  :tangle no
+doom install
+doom sync
+#+end_src
+
+*** Config in ORG
+Wenn anstatt in der config.el in einer config.org erstellt werden soll, dann muss in deiner init.el Datei der :config so aussehen.
+
+#+begin_src emacs-lisp
+:config
+literate
+(default +bindings +smartparens))
+#+end_src
+
+*** elyo-pydyn Package
+Anleitung zum Installieren und Konfiguration vom elyo-pydyn. Die Dateien sind im docs-Ordner gespeichert.
+**** Ordner erstellen
+Im doom-Ordner müssen die Ordner =modules=, =elyo= und =dynamo= erstellt werden.
+Die Namen =elyo= und =dynamo= können durch andere Namen ersetzt werden.
+#+begin_src bash
+mkdir ~/.config/doom/modules/elyo/dynamo
+#+end_src
+
+**** Dateien erstellen
+Dateien aus =docs/doom= in =~/.config/doom/modules/elyo/dynamo= kopieren.
+
+**** Pfad anpassen
+Wenn die Namen übernommen wurden, dann sind keine Anpassungen nötig, ansonsten muss der verwendete Pfad angepasst werden.
+=config.el= die erste Zeile
+#+begin_src emacs-lisp
+;;; elyo/dynamo/config.el -*- lexical-binding: t; -*-
+#+end_src
+
+=package.el= die zweite Zeile
+#+begin_src emacs-lisp
+;; -*- no-byte-compile: t; -*-
+;;; elyp/dynamo/packages.el
+#+end_src
+
+**** init.el anpassen
+In der Datei =~/.config/doom/init.el= angegeben werden.
+Die Namen müssen mit den Namen der vorher erstellen Ordner übereinstimmen.
+Ich habe den Eintrag nach :app und vor :config eingefügt.
+
+#+begin_src emacs-lisp
+:elyo
+dynamo
+#+end_src
+
+**** Package installieren
+Datei speichern und doom schliessen (SPC q q) anschliessend im Terminal den Befehl ausführen, damit das Package von GIT geklonet und installiert wird.
+
+#+begin_src bash  :tangle no
+doom sync
+#+end_src
+
+* $PATH konfigurieren
+Ermöglicht, dass die PATH Variable beim Öffnen eines Terminals angepasst werden. Ich hatte Probleme, dass anstatt das Linux Programm (python und pyenv) die Installation von Windows verwendet wurde, weil die Windows-Pfade erschienen. Anwendung auf eigene Gefahr...
+In der DOOM init.el-Datei muss der Kommentar bei =direnv= entfernt (Kommentare hinzufügen oder entfernen ~evil~ g-c), =Doom Emacs= geschlossen und im Terminal =doom sync= ausgeführt werden. Es ist möglich, dass dafür auch eine Installation in Ubuntu nötigt ist....
+Keine Ahnung, ob dies noch nötig ist.
+
+Die Linie als unterste Zeile in =~/.bashrc= einfügen und neu starten
+
+#+begin_src bash :tangle no
+eval "$(direnv hook bash)"
+#+end_src
+
+Anpassungen der PATH-Variable durch eine =.envrc= gelten für das aktuelle und alle Unterverzeichnisse.
+Aktuell ist die Datei im Home-Verzeichnis gespeichert...
+
+~ACHTUNG In Linux sind die Pfade case-sensitive~
+
+#+begin_src sh :tangle no
+PATH_rm "/mnt/c/Users/*"        #Entfernt alle Pfade die mit /mnt/c/Users/ starten
+PATH_rm "/mnt/c/tools/*"        #Entfernt alle Pfade die mit /mnt/c/tools/ starten
+PATH_rm "/mnt/c/*msys*"         #Entfernt alle Pfade die mit /mnt/c/ starten und msys enthalten
+PATH_rm "/mnt/c/*chocolatey*"   #Entfernt alle Pfade die mit /mnt/c/ starten und chocolatey enthalten
+PATH_rm "/mnt/c/Program Files*" #Entfernt alle Pfade die mit /mnt/c/Program Files starten
+#+end_src
