@@ -5,71 +5,70 @@
 
 * Was ist das Problem?
 In [[https://dynamobim.org/][Dynamo BIM]] kann durch Verbinden von Blöcken und darin enthaltenen Funktionen Skripts erstellt werden. Man kann auch Python-Code schreiben und verwenden. Der integrierte Python-Editor ermöglicht lediglich die farbliche Hervorhebung einiger Python-Keywords wie def, class usw. So schnell wird es auch keine IDE-Funktionalitäten geben, welche vor allem bei der Suche nach Fehlern schmerzlich vermisst werden. Es ist möglich, eine Dynamo-Datei, eine JSON-Datei mit modifizierter Extension, in jedem Editor zu öffnen. Durch das [[https://de.wikipedia.org/wiki/Maskierungszeichen][Maskieren]] von [[https://de.wikipedia.org/wiki/Steuerzeichen][Steuerzeichen]] vor dem Einfügen in die Datei ist eine Bearbeitung direkt in der Dynamo-Datei nicht möglich.
-Da Dynamo von =IronPython 2.7= auf =Python 3.8= gewechselt hat und zeitnah =IronPython 2.7= nicht mehr unterstützt wird, ist eine Überarbeitung vom Python Code unausweichlich. Der Druck und die Vorstellung, diese ~Sisyphusarbeit~ im integrierten Editor zu erledigen, brachten mich auf
+Da Dynamo von *IronPython 2.7* auf *Python 3.8* gewechselt hat und zeitnah *IronPython 2.7* nicht mehr unterstützt wird, ist eine Überarbeitung vom Python Code unausweichlich. Der Druck und die Vorstellung, diese /Sisyphusarbeit/ im integrierten Editor zu erledigen, brachten mich auf
 die *von hinten durch Brust ins Auge* Lösung aus folgenden Punkten:
 1. Dynamo-Dateien können immer verändert und geändert werden.
 2. Konvertierung von Python-Code aus Dynamo-Datei in eine Python-Datei
-   a) Information der Quelle speichern
-   b) Aufbereiten vom Code ermöglichen.
+   * Information der Quelle speichern
+   * Aufbereiten vom Code ermöglichen.
 3. Überarbeitung vom Code
-   a) Vorgabe: Erste Zeile für die Angaben der Quelle reserviert
+   * Vorgabe: Erste Zeile für die Angaben der Quelle reserviert
 4. Konvertierten Code aus der Python-Datei in die Quelle einfügen.
-   a) Bereinigung von Python-Kommentaren (Formatierung & Type-Check)
+   * Bereinigung von Python-Kommentaren (Formatierung & Type-Check)
 
 * Warum nicht VS Code
 Es hätte eine VS Code Extension oder etwas wahrscheinlicher ein Python-Skript werden,
-Wenn ich nicht von einer [[https://de.wikipedia.org/wiki/Emacs][IDE]] gelesen hätte, die Namensgeber einer [[https://www.google.com/search?q=emacs+pinky][Verletzung]] ist.
-Waaasss??? Es gibt wirklich einen [[https://de.wikipedia.org/wiki/Editor_War][Krieg der Editoren]]. Ich wollte/musste einfach mehr darüber erfahren.
+Wenn ich nicht von einer [[https://de.wikipedia.org/wiki/Emacs][IDE]] gelesen hätte, die Namensgeber einer [[https://www.google.com/search?q=emacs+pinky][Verletzung]] ist und, kaum zu glauben, eine Partei im [[https://de.wikipedia.org/wiki/Editor_War][Krieg der Editoren]] ist.
+Ich wollte/musste einfach mehr darüber erfahren.
 1. die Verletzung existiert, kann aber einfach vermieden werden.
 2. der Krieg hat sich bis heute fortgesetzt.
 3. Emacs beeindruckte durch die vielen [[https://melpa.org/#/][Packages]] und die Möglichkeiten, die daraus resultieren.
+   * Verwendet [[https://de.wikipedia.org/wiki/Lisp][Lisp]] für Installation und Konfiguration.
 4. [[https://en.wikipedia.org/wiki/Vim_(text_editor)][VIM]] überzeugte vor allem durch das [[https://home.uni-leipzig.de/muellerg/vimintro.pdf][besondere Konzept]], auf dem Navigation und Bearbeiten von Text basiert.
-5. Der =Evil=-Mode ermöglicht, dass in Emacs das Konzept von VIM zu verwenden.
-6. VIM und Emacs haben genaue eine Gemeinsamkeit. *Beide werden ausschliesslich mit der Tastatur bedient.*
-Mit [[https://github.com/microsoft/wslg][WSL]] ist es möglich, Emacs unter [[https://apps.microsoft.com/detail/9pn20msr04dw?hl=en-US&gl=US][Linux]] zu installieren. Lösungen bei der Installation lassen sich schnell finden. [[https://www.google.com/search?q=Ubuntu+installation+von...][Googeln ist dein Freund]].
-Durch [[https://github.com/doomemacs/doomemacs][DOOM]] ist es möglich, vorkonfigurierte Module zu installieren und meistens ohne Konfiguration zu verwenden.
-Das Lernen von [[https://de.wikipedia.org/wiki/Lisp][Lisp]], ist weiterhin von Bedeutung, nur damit lassen sich neue Pakete installieren und konfigurieren.
+   * Verwendet [[https://vimdoc.sourceforge.net/htmldoc/usr_41.html][Vimscript]] für Installation und Konfiguration
+5. [[https://github.com/emacs-evil/evil][Evil-Mode]] ermöglicht VIM Funktionen in Emacs anzuwenden.
+6. Gemeinsamkeit von Emacs und VIM:
+   * Beide werden ausschliesslich mit der Tastatur bedient
+   * Stammen aus einem anderen Jahrtausend
 
-Lange rede kurzer Sinn. Obwohl die Vorgeschichte bereits ein paar Jahre her ist, faszinieren mich die beiden Editoren immer noch.
-*Angesichts dessen habe ich die Idee in meinem ersten Emcas-Package verwirklicht und etwas mehr in Lisp einzutauchen.*
+*Obwohl die Vorgeschichte bereits ein paar Jahre her ist, faszinieren mich die beiden Editoren immer noch.*
+Dank [[https://github.com/microsoft/wslg][WSL]] kann Emacs unter [[https://apps.microsoft.com/detail/9pn20msr04dw?hl=en-US&gl=US][Linux]] installiert werden. Lösungen für Probleme lassen sich [[https://www.google.com/search?q=Ubuntu+installation+von...][schnell finden]] und können oft durch Kopieren von Befehlen angewendet werden. Das Framework [[https://github.com/doomemacs/doomemacs][doomemacs]] erlaubt die Installation von vorkonfigurierten Modulen. Module lassen sich nach der Installation meist ohne oder mit sehr wenig Konfiguration verwenden.
+*Um mehr in die Welt von Doom/Emacs einzutauchen und beim Schreiben von Lisp Code Fortschritte zu machen, habe ich die Idee in meinem ersten Emacs-Package verwirklicht.*
 
 * Beschreibung
 Im Paket gibt es je einen [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Minor-Modes.html#:~:text=A%20minor%20mode%20is%20an,off%20(disabled)%20in%20others.][Minor-Mode]] für /Dynamo-/ oder /Python/-Dateien. Neben verschiedenen Optionen für Import bzw. Export gibt es in jedem Mode zusätzliche Funktionen, um die Bearbeitung und den Prozess zu unterstützen.
 Nachdem der Entschluss gefasst wurde, das Package zu veröffentlichen. Musste die Konfigurationen von [[https://microsoft.github.io/language-server-protocol/][LSP]], [[https://github.com/gtalarico/ironpython-stubs][Stubs Dateien]], usw. aus dem Package entfernen werden, um die Abhängigkeiten zu verringern. Eine neue Seite der [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Hooks.html][Hooks]] wurde ersichtlich. Diese nicht nur für die Konfiguration nützlich, sondern haben Einfluss auf die Implementierung der Minor Mode. Ein Hook und die registrierten Funktionen werden beim Aktivieren oder Deaktivieren von Mode's ausgeführt. Durch eine neue Funktion und die Registrierung der Funktion beim Hook vom Minor-Mode, konnte der Code aus dem Package in die Funktion verschoben werden.
-Damit wurden die Abhängigkeit von anderen Packages auf ein Minimum reduziert (=Keep it Simple, Stupid=) und Minor Mode nur die notwendige Funktionen beinhalten (=Do One Thing and Do It Welt=).
+Bei der Überarbeitung konnten die Abhängigkeit von anderen Packages auf ein Minimum reduziert werden und in den beiden Minor Mode's sind nur noch die notwendigen Funktionen enthalten. Das Package befolgt somit die Unix-Philosophien *Do One Thing and Do It Well* und *Keep it Simple, Stupid*.
 
 Durch Minor-Mode für Dynamo- und Python-Dateien zusammen mit den DOOM vorkonfigurierten Packages wie [[https://magit.vc/][Magit]], [[https://orgmode.org/][ORG]] und dem Python Module mit den IDE-Funktionen, ermöglichen den ganzen Prozess zum Bearbeiten von Dynamo-Dateien ausschliesslich in EMACS und keinem weiterem Programm abzuarbeiten.
 
 * Keine Doom/Emacs Erfahrung?
-Um den Einstieg zu vereinfachen, hier - hoffentlich nützliche - Information
-- Installation von WSL
-  + [[https://learn.microsoft.com/de-de/windows/wsl/install][Installationanleitung WSL von Microsoft]]
-  + [[https://apps.microsoft.com/detail/9pn20msr04dw?hl=en-US&gl=US][Ich verwende Ubuntu 22.04]]
-Dokument in /[[https://github.com/eraschle/elyo-pydyn/tree/master/docs][docs]]/:
-1. Anleitung für WSL
-   + pyenv
-   + pyright
-     Globale pyright Installation benötigt
-     - node-js
-   + Emacs
-   + DOOM
-2. Konfiguration-Vorlage [[https://github.com/eraschle/elyo-pydyn][elyo-pydyn]]
-   + Aktivierung der Python-Umgebung
-   + Einrichten von [[https://github.com/microsoft/pyright][pyright]]
-     - Verwenden von Stubs-Dateien
-   + Konfiguration von [[https://github.com/hhatto/autopep8][autopep8]]
-   + Tastenkombination für Localleader (SPC-m)
+Um den Einstieg zu vereinfachen, hier ein paar - hoffentlich nützliche - Information
+1. WSL Installation
+   * [[https://learn.microsoft.com/de-de/windows/wsl/install][Installationanleitung WSL von Microsoft]]
+   * [[https://apps.microsoft.com/detail/9pn20msr04dw?hl=en-US&gl=US][Ich verwende Ubuntu 22.04]]
+2. [[https://github.com/eraschle/elyo-pydyn/blob/master/docs/installation.org][Anleitung für WSL]] mit
+   * node-js
+   * pyenv
+   * pyright
+   * Emacs
+   * DOOM
+3. [[https://github.com/eraschle/elyo-pydyn/tree/master/docs/doom][Konfiguration-Vorlage]] für
+   * Aktivierung virtueller Python-Umgebung
+   * Einrichten von [[https://github.com/microsoft/pyright][pyright]] (Bsp: Stubs)
+   * Konfiguration von [[https://github.com/hhatto/autopep8][autopep8]] - Formatter
+   * DOOM-Tastenkombination  Localleader (SPC-m)
 
 * Python
 ** Konvertierung zu Dynamo
 1. Datei lesen
-   a. Information zum Zurückschreiben merken
-   b. Code kopieren
-2. Kommentare entfernen
-   a. Type Checker
-   b. Formatierung
-   c. Information zum Zurückschreiben
-3. Leere Zeilen vor und nach dem Code entfernen.
+   * Information Source-Datei/Block
+   * Code kopieren
+2. Leere Zeilen vor und nach dem Code entfernen.
+   * Information Source-Datei/Block
+3. Kommentare entfernen
+   * Type Checker
+   * Formatierung
 4. Einrückung in TAB umwandeln
 5. Codierung für JSON-String
 6. String im Python-Block ersetzten.
@@ -113,14 +112,15 @@ Dokument in /[[https://github.com/eraschle/elyo-pydyn/tree/master/docs][docs]]/:
 
 - *elyo-python-ignore-to-errors*
 
+  Fügt Type-Checker-Kommentare zu allen bekannten Type-Checker Fehler ein. Weil diese Fehler keine Fehler sind und/oder diese nicht gelöst werden können, wird diese nicht mehr als Fehler angezeigt
+
 - *elyo-python-backslash-ensure*
 
   Überprüft die Anzahl der Backslashs in einem String.
 
 - *elyo-python-formatter-disable*
 
-  Deaktiviert das Formatieren für die aktuelle Region
-  Fügt die Type-Checker-Kommentare zu allen bekannten Type-Checker Erros. Dadurch werden die gleichen Fehler angezeigt, die Korrekt sind und nicht gelöst werden können.
+  Deaktiviert das Formatieren für die aktivierte Region
 
 - *elyo-python-formatter-enable*
 
@@ -139,12 +139,12 @@ Dokument in /[[https://github.com/eraschle/elyo-pydyn/tree/master/docs][docs]]/:
 1. Code aus Python-Block auslesen
 2. Decodieren des Strings
 3. Datei erstellen/überschreiben
-   a. Information zum Zurückschreiben
-   b. Code einfügen
+   * Information zum Zurückschreiben
+   * Code einfügen
 4. Einrückung anpassen (IronPython: TAB / Python 3: Space)
 5. Optional
-   a. Kommentare vom Python Template entfernen:
-   b. Type-Checker Kommentare bei bekannten Fehlern einfügen
+   * Kommentare vom Python Template entfernen:
+   * Type-Checker Kommentare bei bekannten Fehlern einfügen
 
 ** Funktionen
 - *elyo-dynamo-mode-on*
