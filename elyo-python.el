@@ -404,7 +404,7 @@ Return point of match or nil."
   (let ((long-slashes "\\\\\\\\")
         (one-slash "\\"))
     (when (s-contains? one-slash match-value)
-      (while (and one-slash (> (seq-length long-slashes) one-slash))
+      (while (and one-slash (> (seq-length long-slashes) (seq-length one-slash)))
         (if (s-contains? long-slashes match-value)
             (setq one-slash nil)
           (setq long-slashes
