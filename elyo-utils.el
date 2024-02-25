@@ -27,11 +27,6 @@
 
 (require 'lsp)
 (require 'lsp-headerline)
-(require 'recentf)
-(require 's)
-(require 'subr-x)
-(require 'undo-fu-session)
-(require 'evil-vars)
 
 (defcustom elyo-pydyn-keymap-prefix "C-c C-y"
   "Prefix for `elyo-dynamo' and `elyo-python' minor mode bindings."
@@ -41,9 +36,10 @@
 
 (defun elyo-pydyn-key (&rest keys)
   "Return Emacs key representation of KEYS."
-  (kbd (s-join " " (append
-                    (ensure-list elyo-pydyn-keymap-prefix)
-                    (ensure-list keys)))))
+  (kbd (string-join
+        (append (ensure-list elyo-pydyn-keymap-prefix)
+                (ensure-list keys))
+        " ")))
 
 
 (defcustom elyo-dynamo-input-regex "IN[^ -][^A-Za-z]\\(\[[0-9]+\]\\)?"
@@ -60,16 +56,15 @@
 
 (defun elyo-buffer-preview-name (name)
   "Return preview buffer NAME with `elyo-buffer-preview'."
-  (message "Preview Name: %s" name)
   (concat (propertize (format "** %s " elyo-buffer-preview-prefix) 'face 'marginalia-file-owner)
           (propertize (format "%s ** " name) 'face 'marginalia-file-name)))
 
 
 (defun elyo-buffer-preview-name? ()
   "Return non-nil if current buffer is a preview buffer."
-  (and (s-starts-with? (format "** %s " elyo-buffer-preview-prefix)
-                       (buffer-name))
-       (s-ends-with? " **" (buffer-name))))
+  (and (string-prefix-p (format "** %s " elyo-buffer-preview-prefix)
+                        (buffer-name))
+       (string-suffix-p " **" (buffer-name))))
 
 
 (defun elyo-buffer-preview-get (name)
@@ -169,9 +164,7 @@ WITH-PROPERTIES controll if the substring contains properties or not."
   "Return user path selction from PATHS. PROMPT is show to user.
 PREFIX will be removed from PATHS."
   (let* ((name-and-path (elyo--name-path-list (-flatten paths) prefix))
-         (selected (completing-read prompt name-and-path nil t))
-         (completions-format 'vertical)
-         (completions-sort 'alphabetical))
+         (selected (elyo-choose-get name-and-path prompt)))
     (catch 'found-it
       (dolist (name-path name-and-path)
         (when (string-equal (seq-first name-path) selected)
@@ -256,7 +249,6 @@ Otherwise they are really slow down the process. See `lsp-disabled-clients'"
 ;;;###autoload
 (defun elyo-disable-lsp-clients ()
   "Disable lsp clients in `elyo-convert-disabled-lsp-client'."
-  ;; (recentf-mode -1)
   (setq lsp-disabled-clients elyo-convert-disabled-lsp-client)
   (run-hooks 'elyo-convert-start-hook)
   (setq elyo-convert-process-running t))
@@ -267,9 +259,7 @@ Otherwise they are really slow down the process. See `lsp-disabled-clients'"
   "Enable LSP-client and restore attributes."
   (setq elyo-convert-process-running nil)
   (run-hooks 'elyo-convert-end-hook)
-  (setq lsp-disabled-clients nil)
-  ;; (recentf-mode 1)
-  )
+  (setq lsp-disabled-clients nil))
 
 
 ;;;###autoload
@@ -320,7 +310,7 @@ Otherwise they are really slow down the process. See `lsp-disabled-clients'"
   "Convert buffer from TAB to SPACE indentation."
   (interactive)
   (when indent-tabs-mode
-    (indent-tabs-mode nil))
+    (indent-tabs-mode -1))
   (untabify (point-min) (point-max)))
 
 
@@ -334,24 +324,6 @@ Otherwise they are really slow down the process. See `lsp-disabled-clients'"
   "Convert buffer from TAB to SPACE indentation."
   (setq lsp-headerline-breadcrumb-enable nil
         lsp-headerline-breadcrumb-enable-symbol-numbers nil))
-
-
-(defun elyp-plist-keys (plist)
-  "Return the keys in PLIST."
-  (let (keys)
-    (while plist
-      (setq keys (cons (car plist) keys))
-      (setq plist (cdr (cdr plist))))
-    keys))
-
-
-(defun elyo-plist-values (plist)
-  "Return the values in PLIST."
-  (let (keys)
-    (while plist
-      (setq keys (cons (car (cdr plist)) keys))
-      (setq plist (cdr (cdr plist))))
-    keys))
 
 
 (provide 'elyo-utils)
