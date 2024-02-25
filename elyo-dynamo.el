@@ -27,7 +27,6 @@
 
 (require 'elyo-utils)
 (require 'elyo-python)
-(require 'ws-butler)
 
 (require 'view)
 
@@ -332,7 +331,6 @@ SWITCH-OR-KILL last export buffer afterwards."
   "Activate and config `elyo-dynamo-mode' if possible."
   (elyo-dynamo-json-config)
   (when (and (elyo-is-json-mode?)
-             (elyo-is-dynamo?)
              (elyo-is-dynamo-source?))
     (elyo-dynamo-mode 1)))
 
