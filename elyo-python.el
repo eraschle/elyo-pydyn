@@ -25,9 +25,9 @@
 ;;
 ;;; Code:
 
-(require 'elyo-path)
-(require 'elyo-convert)
-(require 'elyo-utils)
+(require 'elyo-pydyn-path)
+(require 'elyo-pydyn-convert)
+(require 'elyo-pydyn-utils)
 
 (require 's)
 (require 'rect)
@@ -43,7 +43,7 @@
   (kbd (elyo-pydyn-key elyo-python-keymap-prefix key)))
 
 
-(defun elyo--python-mode-map-create ()
+(defun elyo-python--mode-map-create ()
   "Define python keymap."
   (let ((key-map (make-sparse-keymap)))
     (define-key key-map (elyo-python-key "m") #'elyo-python-mode-on)
@@ -61,14 +61,14 @@
     (define-key key-map (elyo-python-key "r") #'elyo-python-node-rename)
     (define-key key-map (elyo-python-key "s") #'elyo-python-to-dynamo-script)
     (define-key key-map (elyo-python-key "S") #'elyo-python-to-dynamo-folder)
-    (define-key key-map (elyo-python-key "t") #'elyo-buffer-tabify)
-    (define-key key-map (elyo-python-key "T") #'elyo-buffer-untabify)
+    (define-key key-map (elyo-python-key "t") #'elyo-pydyn-buffer-tabify)
+    (define-key key-map (elyo-python-key "T") #'elyo-pydyn-buffer-untabify)
     (define-key key-map (elyo-python-key "v") #'elyo-python-node-geometry-set)
     (define-key key-map (elyo-python-key "y") #'elyo-python-ignore-toggle)
     key-map))
 
 
-(defvar elyo-python-mode-map (elyo--python-mode-map-create)
+(defvar elyo-python-mode-map (elyo-python--mode-map-create)
   "The keymap for elyo-python-mode.")
 
 (add-to-list 'minor-mode-alist '(elyo-python-mode " elyo-python"))
@@ -77,8 +77,8 @@
 (defun elyo-python-command-regex-get(name-and-value)
   "Return regex for NAME-AND-VALUE of comment, like type: ignore."
   (format "#[ ]?%s[ ]?:[ ]?%s"
-          (s-trim (car name-and-value))
-          (s-trim (cadr name-and-value))))
+          (string-trim (car name-and-value))
+          (string-trim (cadr name-and-value))))
 
 
 (defun elyo-python-command-regex(comment)
@@ -96,7 +96,8 @@
 (defun elyo-python-indent-width-setup ()
   "Set `elyo-python-indent-width' in current buffer."
   (when elyo-python-indent-width
-    (elyo-indent-width-setup elyo-python-indent-width)))
+    (elyo-pydyn-indent-width-setup elyo-python-indent-width)
+    (setq-local python-indent-offset elyo-python-indent-width)))
 
 
 (defcustom elyo-python-line-length nil
@@ -112,7 +113,7 @@
 
 
 (defcustom elyo-python-type-ignore nil
-  "Comment to supress type checker error."
+  "Comment to suppress type checker error."
   :type 'string
   :group 'elyo-pydyn)
 
@@ -120,9 +121,13 @@
 (defun elyo-python-is-type-ignore? ()
   "Return non-nil if current line contain `elyo-python-type-ignore'."
   (when elyo-python-type-ignore
-    (s-matches? (elyo-python-command-regex
-                 elyo-python-type-ignore)
-                (elyo--current-line))))
+    ;; TODO How can check if matched without save match-data.
+    ;; No Clue has impact on performance or not but code
+    ;; looks like there is better version
+    (save-match-data
+      (string-match-p (elyo-python-command-regex
+                       elyo-python-type-ignore)
+                      (elyo-pydyn-current-line)))))
 
 
 (defun elyo-python-ignore-add ()
@@ -130,7 +135,7 @@
   (when (and elyo-python-type-ignore
              (not (elyo-python-is-type-ignore?)))
     (elyo-python--current-line-replace
-     (concat (s-trim-right (elyo--current-line))
+     (concat (s-trim-right (elyo-pydyn-current-line))
              (make-string 2 ? )
              elyo-python-type-ignore))))
 
@@ -152,10 +157,11 @@
 
 (defun elyo-python-ignore-remove ()
   "Return current line with last search match replaced."
-  (when (and elyo-python-type-ignore (elyo-python-is-type-ignore?))
+  (when (and elyo-python-type-ignore
+             (elyo-python-is-type-ignore?))
     (elyo-python--current-line-replace
      (string-trim-right (string-remove-suffix (match-string-no-properties 0)
-                                              (elyo--current-line))))))
+                                              (elyo-pydyn-current-line))))))
 
 
 ;;;###autoload
@@ -164,14 +170,15 @@
   (interactive)
   (when elyo-python-type-ignore
     (save-excursion
-      (elyo--while-regex (elyo-python-command-regex elyo-python-type-ignore)
-                         'elyo-python-ignore-remove))))
+      (elyo-pydyn-while-regex
+       (elyo-python-command-regex elyo-python-type-ignore)
+       'elyo-python-ignore-remove))))
 
 
 (defun elyo-python--current-line-replace (new-line)
   "Replace current line with NEW-LINE."
   (replace-string-in-region
-   (elyo--current-line) new-line (pos-bol) (pos-eol)))
+   (elyo-pydyn-current-line) new-line (pos-bol) (pos-eol)))
 
 
 (defcustom elyo-python-formatter-on nil
@@ -188,7 +195,7 @@
                               (pos-bol))))
         ;; First insert the end value
         (goto-char end-point)
-        (if (s-blank? (elyo--current-line))
+        (if (s-blank? (elyo-pydyn-current-line))
             (progn (insert elyo-python-formatter-on)
                    (open-line 1))
           (ensure-empty-lines 1)
@@ -211,7 +218,7 @@
                                 (pos-bol))))
         ;; Otherwise start would change the end position
         (goto-char start-point)
-        (if (s-blank? (elyo--current-line))
+        (if (s-blank? (elyo-pydyn-current-line))
             (progn (insert elyo-python-formatter-off)
                    (ensure-empty-lines 1))
           (open-line 1)
@@ -237,14 +244,14 @@ Return point of match or nil."
   (re-search-forward (elyo-python-command-regex comment)
                      (point-max) t 1))
 
-(defun elyo--python-formatter-next (comment)
+(defun elyo-python--formatter-next (comment)
   "Return next position of COMMENT."
   (save-excursion
     (elyo--comment-next-search comment)
     (match-beginning 0)))
 
 
-(defun elyo--python-formatter-previous (comment)
+(defun elyo-python--formatter-previous (comment)
   "Return previous position of COMMENT."
   (save-excursion
     (re-search-backward (elyo-python-command-regex comment)
@@ -255,15 +262,15 @@ Return point of match or nil."
 (defun elyo-python-formatter-on-pos ()
   "Return previous and next position of `elyo-python-formatter-on'."
   (let ((comment elyo-python-formatter-on))
-    (cons (elyo--python-formatter-previous comment)
-          (elyo--python-formatter-next comment))))
+    (cons (elyo-python--formatter-previous comment)
+          (elyo-python--formatter-next comment))))
 
 
 (defun elyo-python-formatter-off-pos ()
   "Return previous and next position of `elyo-python-formatter-off'."
   (let ((comment elyo-python-formatter-off))
-    (cons (elyo--python-formatter-previous comment)
-          (elyo--python-formatter-next comment))))
+    (cons (elyo-python--formatter-previous comment)
+          (elyo-python--formatter-next comment))))
 
 
 (defun elyo-python-formatter-is-inside? ()
@@ -310,7 +317,7 @@ Return point of match or nil."
   "Remove lines contain any value in `elyo-python-delete-contain'."
   (when elyo-python-delete-contain
     (dolist (search-for elyo-python-delete-contain)
-      (elyo--while-search search-for 'delete-line))))
+      (elyo-pydyn-while-search search-for 'delete-line))))
 
 
 (defcustom elyo-python-type-ignore-regex nil
@@ -321,7 +328,7 @@ Return point of match or nil."
 
 ;;;###autoload
 (defun elyo-python-highlight-regex ()
-  "Highlight `elyo-dynamo-input-regex' in current buffer."
+  "Highlight `elyo-pydyn-dynamo-input-regex' in current buffer."
   (interactive)
   (let ((hi-lock-auto-select-face t))
     (dolist (regex (completing-read-multiple
@@ -332,7 +339,7 @@ Return point of match or nil."
 
 ;;;###autoload
 (defun elyo-python-unhighlight-regex ()
-  "Unhighlight all `elyo-dynamo-input-regex' in current buffer."
+  "Unhighlight all `elyo-pydyn-dynamo-input-regex' in current buffer."
   (interactive)
   (dolist (regex elyo-python-type-ignore-regex)
     (unhighlight-regexp regex)))
@@ -348,14 +355,15 @@ Return point of match or nil."
 (defun elyo-python-ignore-to-errors ()
   "Add `elyo-python-type-ignore' to known type checker errors."
   (interactive)
+  (elyo-pydyn-is-dynamo-python-or-error)
   (when elyo-python-type-ignore-regex
     (save-excursion
       (dolist (regex elyo-python-type-ignore-regex)
-        (elyo--while-regex regex 'elyo-python-ignore-add))))
+        (elyo-pydyn-while-regex regex 'elyo-python-ignore-add))))
   (when elyo-python-type-ignore-contain
     (save-excursion
       (dolist (search-for elyo-python-type-ignore-contain)
-        (elyo--while-search search-for 'elyo-python-ignore-add)))))
+        (elyo-pydyn-while-search search-for 'elyo-python-ignore-add)))))
 
 
 (defun elyo-python-convert-clean ()
@@ -368,10 +376,10 @@ Return point of match or nil."
 (defun elyo-python-ignore-to-inputs ()
   "Add `elyo-python-type-ignore' to Dynamo Input (IN)."
   (interactive)
-  (elyo-is-python-export-or-error)
+  (elyo-pydyn-is-dynamo-python-or-error)
   (save-excursion
-    (elyo--while-regex elyo-dynamo-input-regex
-                       'elyo-python-ignore-add))
+    (elyo-pydyn-while-regex elyo-pydyn-dynamo-input-regex
+                            'elyo-python-ignore-add))
   (if (and (called-interactively-p 'interactive)
            (buffer-modified-p))
       (save-buffer)))
@@ -409,7 +417,7 @@ Return point of match or nil."
   "Replace `\\' with `\\\\' in region  of group 1."
   (let* ((value (match-string-no-properties 1))
          (slash (elyo-python-backslash-values value))
-         (start-r? (s-starts-with? "r" value)))
+         (start-r? (string-prefix-p "r" value)))
     (if (s-contains? slash value)
         (replace-string-in-region slash (if start-r? "\\" "\\\\")
                                   (match-beginning 1) (pos-eol)))))
@@ -425,10 +433,11 @@ Return point of match or nil."
   "Start `query-replace-regexp' process to replace brackets in if-statement."
   (interactive)
   (when elyo-python-inside-bracket-regex
+    (elyo-pydyn-is-dynamo-python-or-error)
     (save-excursion
-      (elyo--while-regex elyo-python-inside-bracket-regex
-                         'elyo-python--backslash-check
-                         'elyo-python--backslash-contain)
+      (elyo-pydyn-while-regex elyo-python-inside-bracket-regex
+                              'elyo-python--backslash-check
+                              'elyo-python--backslash-contain)
       (unhighlight-regexp elyo-python-inside-bracket-regex))))
 
 
@@ -452,12 +461,12 @@ Return point of match or nil."
 (defun elyo-python-goto-dynamo-node ()
   "Goto to source file and try to select code at point in source."
   (interactive)
-  (elyo-is-python-export-or-error)
-  (elyo-convert-goto-code (elyo-convert-to-dynamo
-                           (elyo--current-line))))
+  (elyo-pydyn-is-dynamo-python-or-error)
+  (elyo-pydyn-goto-code (elyo-pydyn-to-dynamo
+                         (elyo-pydyn-current-line))))
 
 
-(defun elyo--python-code-clean ()
+(defun elyo-python--code-clean ()
   "Return code of current buffer with removed python comments."
   (let ((code (buffer-string)))
     (with-temp-buffer
@@ -467,52 +476,52 @@ Return point of match or nil."
       (buffer-string))))
 
 
-(defun elyo--python-to-dyn-node ()
+(defun elyo-python--to-dyn-node ()
   "Replace python code of current buffer in Dynamo node."
-  (elyo-convert-python-to-dynamo (elyo--python-code-clean)))
+  (elyo-pydyn-is-dynamo-python-or-error (elyo-python--code-clean)))
 
 
 ;;;###autoload
 (defun elyo-python-to-dynamo-node (file-path switch-or-kill)
   "Replace code from FILE-PATH in source. SWITCH-OR-KILL Dynamo buffer afterwarts."
   (interactive (list buffer-file-name
-                     (elyo-choose-switch-or-kill "Dynamo")))
-  (elyo-is-python-export-or-error file-path)
-  (with-current-buffer (elyo-buffer-by file-path)
-    (elyo-save-buffer-of (elyo--python-to-dyn-node)
-                         (elyo--is-switch switch-or-kill)
-                         (elyo--is-switch-other switch-or-kill)
-                         (elyo--is-kill switch-or-kill))))
+                     (elyo-pydyn-choose-switch-or-kill "Dynamo")))
+  (elyo-pydyn-is-dynamo-python-or-error file-path)
+  (with-current-buffer (elyo-pydyn-buffer-by file-path)
+    (elyo-pydyn-save-buffer (elyo-python--to-dyn-node)
+                            (elyo-pydyn-is-switch switch-or-kill)
+                            (elyo-pydyn-is-switch-other switch-or-kill)
+                            (elyo-pydyn-is-kill switch-or-kill))))
 
 
 ;;;###autoload
 (defun elyo-python-to-dynamo-script (file-path switch-or-kill)
   "Replace code from FILE-PATH of all Dynamo nodes, SWITCH-OR-KILL buffer."
-  (interactive (list (if (elyo-is-python-export? buffer-file-name)
+  (interactive (list (if (elyo-pydyn-is-python-export? buffer-file-name)
                          (buffer-file-name)
-                       (elyo-selection-get (elyo-python-files-in elyo-export-root t)
-                                           "Select python file: " elyo-export-root))
-                     (elyo-choose-switch-or-kill "Dynamo")))
-  (elyo-is-python-export-or-error file-path)
+                       (elyo-pydyn-selection-get (elyo-pydyn-python-files-in elyo-export-root t)
+                                                 "Select python file: " elyo-export-root))
+                     (elyo-pydyn-choose-switch-or-kill "Dynamo")))
+  (elyo-pydyn-is-dynamo-python-or-error file-path)
   (unwind-protect
       (progn
-        (elyo-disable-lsp-clients)
+        (elyo-pydyn-disable-lsp-clients)
         (let ((directory (file-name-directory file-path))
               (buffer-before (current-buffer))
-              (switch (elyo--is-switch switch-or-kill))
-              (other-win (elyo--is-switch-other switch-or-kill))
-              (kill (elyo--is-kill switch-or-kill))
+              (switch (elyo-pydyn-is-switch switch-or-kill))
+              (other-win (elyo-pydyn-is-switch-other switch-or-kill))
+              (kill (elyo-pydyn-is-kill switch-or-kill))
               (dyn-path nil))
-          (dolist (python-path (elyo-python-files-in directory))
-            (let ((buffer (elyo-buffer-by python-path)))
+          (dolist (python-path (elyo-pydyn-python-files-in directory))
+            (let ((buffer (elyo-pydyn-buffer-by python-path)))
               (with-current-buffer buffer
-                (setq dyn-path (elyo--python-to-dyn-node)))
+                (setq dyn-path (elyo-python--to-dyn-node)))
               (unless (equal buffer buffer-before)
                 (kill-buffer-if-not-modified buffer))))
-          (elyo-save-buffer-of dyn-path switch other-win kill)
+          (elyo-pydyn-save-buffer dyn-path switch other-win kill)
           (message "Dynamo '%s' updated" (string-remove-prefix
                                           elyo-source-root dyn-path))))
-    (elyo-enable-lsp-clients)))
+    (elyo-pydyn-enable-lsp-clients)))
 
 
 ;;;###autoload
@@ -520,65 +529,65 @@ Return point of match or nil."
   "Replace code in Dynamo of python files in DIRECTORY, SWITCH-OR-KILL last buffer."
   (interactive (list (read-directory-name "Replace code in Dynamo source of all python files in? "
                                           elyo-export-root)
-                     (elyo-choose-switch-or-kill "Dynamo")))
-  (elyo-is-export-or-error directory)
+                     (elyo-pydyn-choose-switch-or-kill "Dynamo")))
+  (elyo-pydyn-is-export-or-error directory)
   (unwind-protect
       (let ((dyn-path nil)
             (buffer-before (current-buffer))
-            (switch (elyo--is-switch switch-or-kill))
-            (other-win (elyo--is-switch-other switch-or-kill))
-            (kill (elyo--is-kill switch-or-kill)))
-        (elyo-disable-lsp-clients)
-        (dolist (file-path (elyo-python-files-in directory t))
-          (let ((buffer (elyo-buffer-by file-path)))
+            (switch (elyo-pydyn-is-switch switch-or-kill))
+            (other-win (elyo-pydyn-is-switch-other switch-or-kill))
+            (kill (elyo-pydyn-is-kill switch-or-kill)))
+        (elyo-pydyn-disable-lsp-clients)
+        (dolist (file-path (elyo-pydyn-python-files-in directory t))
+          (let ((buffer (elyo-pydyn-buffer-by file-path)))
             (with-current-buffer buffer
-              (let ((current-dyn (elyo--python-to-dyn-node)))
-                (unless (or dyn-path (s-equals? current-dyn dyn-path))
-                  (when (and dyn-path (not (s-equals? current-dyn dyn-path)))
-                    (elyo-save-buffer-of dyn-path nil t)
+              (let ((current-dyn (elyo-python--to-dyn-node)))
+                (unless (or dyn-path (string-equal current-dyn dyn-path))
+                  (when (and dyn-path (not (string-equal current-dyn dyn-path)))
+                    (elyo-pydyn-save-buffer dyn-path nil t)
                     (message "Dynamo '%s' updated"
                              (string-remove-prefix
                               elyo-source-root dyn-path)))
                   (setq dyn-path current-dyn))
                 (when (not (equal buffer buffer-before))
                   (kill-buffer-if-not-modified buffer))))))
-        (elyo-save-buffer-of dyn-path switch other-win kill))
-    (elyo-enable-lsp-clients)))
+        (elyo-pydyn-save-buffer dyn-path switch other-win kill))
+    (elyo-pydyn-enable-lsp-clients)))
 
 
 ;;;###autoload
 (defun elyo-python-node-geometry-set (switch-or-kill)
   "Set show geometry in dynamo node and SWITCH-OR-KILL buffer afterwards."
-  (interactive (list (elyo-choose-switch-or-kill "Dynamo")))
-  (elyo-is-python-export-or-error buffer-file-name)
+  (interactive (list (elyo-pydyn-choose-switch-or-kill "Dynamo")))
+  (elyo-pydyn-is-python-export-or-error buffer-file-name)
   (let ((dyn-path node-path)
-        (show (s-equals? "yes" (read-answer
-                                "Show geometry? "
-                                '(("yes"  ?y "Do show geometry")
-                                  ("no"   ?n "Do not show geometry")
-                                  ("quit" ?q "exit"))) ))
-        (switch (elyo--is-switch switch-or-kill))
-        (other-win (elyo--is-switch-other switch-or-kill))
-        (kill (elyo--is-kill switch-or-kill)))
-    (elyo-convert-node-geometry-set show)
-    (elyo-save-buffer-of dyn-path switch other-win kill)))
+        (show (string-equal "yes" (read-answer
+                                   "Show geometry? "
+                                   '(("yes"  ?y "Do show geometry")
+                                     ("no"   ?n "Do not show geometry")
+                                     ("quit" ?q "exit"))) ))
+        (switch (elyo-pydyn-is-switch switch-or-kill))
+        (other-win (elyo-pydyn-is-switch-other switch-or-kill))
+        (kill (elyo-pydyn-is-kill switch-or-kill)))
+    (elyo-pydyn-node-geometry-show-to show)
+    (elyo-pydyn-save-buffer dyn-path switch other-win kill)))
 
 
 ;;;###autoload
 (defun elyo-python-node-rename (switch-or-kill)
   "Rename Dynamo node in source file and SWITCH-OR-KILL buffer afterwards."
-  (interactive (list (elyo-choose-switch-or-kill "Dynamo")))
-  (elyo-is-python-export-or-error buffer-file-name)
+  (interactive (list (elyo-pydyn-choose-switch-or-kill "Dynamo")))
+  (elyo-pydyn-is-python-export-or-error buffer-file-name)
   (let* ((dyn-path node-path)
-         (current-name (elyo-convert-node-name))
+         (current-name (elyo-pydyn-node-name))
          (new-name (read-string "New Dynamo name: " current-name))
-         (switch (elyo--is-switch switch-or-kill))
-         (other-win (elyo--is-switch-other switch-or-kill))
-         (kill (elyo--is-kill switch-or-kill)))
-    (unless (s-equals? new-name current-name)
-      (save-excursion (elyo-convert-node-rename new-name)))
-    (when (buffer-modified-p (elyo-buffer-by dyn-path))
-      (elyo-save-buffer-of dyn-path switch other-win kill))))
+         (switch (elyo-pydyn-is-switch switch-or-kill))
+         (other-win (elyo-pydyn-is-switch-other switch-or-kill))
+         (kill (elyo-pydyn-is-kill switch-or-kill)))
+    (unless (string-equal new-name current-name)
+      (save-excursion (elyo-pydyn-node-rename-to new-name)))
+    (when (buffer-modified-p (elyo-pydyn-buffer-by dyn-path))
+      (elyo-pydyn-save-buffer dyn-path switch other-win kill))))
 
 
 (define-minor-mode elyo-python-mode
@@ -587,19 +596,19 @@ Return point of match or nil."
   :group 'elyo-pydyn
   :lighter " elyo-python"
   :keymap elyo-python-mode-map
-  (cond
-   ((and elyo-python-mode (elyo-not-converting?))
-    (elyo-python-indent-width-setup)
-    (elyo-python-line-length-setup)
-    (elyo-buffer-breadcrump-on)
-    (message "ELYO PYTHON on"))
-   ((and elyo-python-mode (not (elyo-not-converting?)))
-    (setq elyo-python-mode nil)
-    (message "CONVERT running"))
-   (t
-    (setq elyo-python-mode nil)
-    (message "ELYO PYTHON off"))))
 
+  (if elyo-python-mode
+      (cond ((elyo-pydyn-not-converting?)
+             (elyo-python-indent-width-setup)
+             (elyo-python-line-length-setup)
+             (elyo-pydyn-buffer-breadcrumb-on)
+             (message "ELYO PYTHON on"))
+            ((not (elyo-pydyn-not-converting?))
+             (elyo-python-mode nil)
+             (message "ELYO PYTHON converting"))
+            (t (elyo-python-mode nil)
+               (message "ELYO PYTHON UNKNOWN -> disable")))
+    (message "ELYO PYTHON off")))
 
 ;;;###autoload
 (defun elyo-is-python-mode? ()
@@ -608,15 +617,14 @@ Return point of match or nil."
       (derived-mode-p 'python-mode)))
 
 
-;;;###autoload
 (defun elyo-python-mode-activate ()
   "Function to activate `elyo-python-mode'."
   (if (and (elyo-is-python-mode?)
-           (or (elyo-is-python-export?)
-               (elyo-is-python-source?)))
+           (or (elyo-pydyn-is-python-export?)
+               (elyo-pydyn-is-python-source?)))
       (progn (elyo-python-indent-width-setup)
              (elyo-python-line-length-setup)
-             (if (elyo-not-converting?)
+             (if (elyo-pydyn-not-converting?)
                  (elyo-python-mode-on)
                (elyo-python-mode-off)))
     (elyo-python-mode-off)))
@@ -624,17 +632,16 @@ Return point of match or nil."
 
 ;;;###autoload
 (defun elyo-python-mode-on ()
-  "Akticate `elyo-dynamo-mode'."
+  "Enable `elyo-dynamo-mode'."
   (interactive)
   (elyo-python-mode 1))
 
 
 ;;;###autoload
 (defun elyo-python-mode-off ()
-  "Deaktivert `elyo-dynamo-mode'."
+  "Disable `elyo-dynamo-mode'."
   (interactive)
   (elyo-python-mode -1))
-
 
 (provide 'elyo-python)
 ;;; elyo-python.el ends here

@@ -29,13 +29,13 @@
 ;;;###autoload
 (defun pydyn-python-mode-setup ()
   "Hook to setup ELYO PYTHON MINOR MODE."
-  (when (elyo-not-converting?)
+  (when (elyo-pydyn-not-converting?)
     (pydyn-py-activate-venv)
     (pydyn-formatter-config)
     (pydyn-pyright-config)
-    (when (elyo-is-python-2? node-engine)
+    (when (elyo-pydyn-is-python-2? node-engine)
       (pydyn-py2-config))
-    (when (elyo-is-python-3? node-engine)
+    (when (elyo-pydyn-is-python-3? node-engine)
       (pydyn-py3-config))
     (message "ELYO-PYTHON setup")))
 
@@ -44,8 +44,8 @@
 (defun elyo-file-find-uuid-in-library ()
   "Return preview completion with references of custom node."
   (interactive)
-  (when (and (elyo-is-python-export?) (elyo-dynamo-is-custom?))
-    (let ((file-info (elyo-convert-dynamo-file-info)))
+  (when (and (elyo-pydyn-is-python-export?) (elyo-pydyn-is-custom?))
+    (let ((file-info (elyo-pydyn-dynamo-file-info)))
       (+vertico-file-search
         :query (concat "\"FunctionSignature\": \""
                        (plist-get file-info :node-id) "\",")
@@ -100,7 +100,7 @@
                                          "Weisen Sie Ihre Ausgabe der OUT-Variablen zu.")
 
         ;; A tyoe: ignore is added if one regex match
-        elyo-python-type-ignore-regex (list elyo-dynamo-input-regex
+        elyo-python-type-ignore-regex (list elyo-pydyn-dynamo-input-regex
                                             "import [a-zA-z ,]*Enum"
                                             "UnwrapElement(.*)"
                                             "clr.Reference\[[a-zA-Z]+\]\(\)"
@@ -135,7 +135,7 @@
 
 
 (defun pydyn-dynamo-format-maybe-inhibit-h ()
-  (elyo-is-dynamo?))
+  (elyo-pydyn-is-dynamo?))
 
 (defvar pydyn--dynamo-disable-hook nil
   "Variable to store value of other mode hook.")
