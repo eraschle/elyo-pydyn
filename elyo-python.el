@@ -621,7 +621,7 @@ Return point of match or nil."
   "Function to activate `elyo-python-mode'."
   (if (and (elyo-is-python-mode?)
            (or (elyo-is-python-export?)
-               (elyo-is-python-intern?)))
+               (elyo-is-python-source?)))
       (progn (elyo-python-indent-width-setup)
              (elyo-python-line-length-setup)
              (if (elyo-not-converting?)
