@@ -83,7 +83,7 @@
 
 (defun elyo-python-command-regex(comment)
   "Return regex for COMMENT, like type: ignore."
-  (let ((wo-hash (s-trim (string-replace "#" "" comment))))
+  (let ((wo-hash (string-remove-prefix "#" comment)))
     (elyo-python-command-regex-get (s-split ":" wo-hash))))
 
 
@@ -125,51 +125,37 @@
                 (elyo--current-line))))
 
 
-(defun elyo--python-ignore-add ()
-  "Return current line with append `elyo-python-type-ignore'."
-  (when elyo-python-type-ignore
-    (concat (s-trim-right (elyo--current-line))
-            (make-string 2 ? )
-            elyo-python-type-ignore)))
-
-
-;;;###autoload
-(defun elyo-python-ignore-add()
+(defun elyo-python-ignore-add ()
   "Add `elyo-python-type-ignore' if not exist already."
-  (interactive)
-  (unless (elyo-python-is-type-ignore?)
-    (replace-string-in-region (elyo--current-line)
-                              (elyo--python-ignore-add)
-                              (pos-bol) (pos-eol))))
+  (when (and elyo-python-type-ignore
+             (not (elyo-python-is-type-ignore?)))
+    (elyo-python--current-line-replace
+     (concat (s-trim-right (elyo--current-line))
+             (make-string 2 ? )
+             elyo-python-type-ignore))))
 
 
 ;;;###autoload
-(defun elyo-python-ignore-toggle()
+(defun elyo-python-ignore-toggle ()
   "Toggle `elyo-python-type-ignore' in current line."
   (interactive)
-  (when (and elyo-python-type-ignore
-             (elyo-python-is-type-ignore?))
+  (when elyo-python-type-ignore
     (save-excursion
-      (goto-char (pos-bol))
-      (when (re-search-forward
-             (elyo-python-command-regex elyo-python-type-ignore)
-             (pos-eol) t 1)
-        (elyo-python-ignore-remove-match))
-      (elyo-python-ignore-add))))
+      (if (not (elyo-python-is-type-ignore?))
+          (elyo-python-ignore-add)
+        (goto-char (pos-bol))
+        (re-search-forward (elyo-python-command-regex
+                            elyo-python-type-ignore)
+                           (pos-eol) t 1)
+        (elyo-python-ignore-remove)))))
 
 
-(defun elyo--match-replaced(matched)
-  "Return current line with MATCHED replaced."
-  (s-trim-right (s-replace matched "" (elyo--current-line))))
-
-
-(defun elyo-python-ignore-remove-match ()
+(defun elyo-python-ignore-remove ()
   "Return current line with last search match replaced."
-  (let ((matched (elyo--buffer-substring (match-beginning 0)
-                                         (match-end 0))))
-    (replace-string-in-region (elyo--current-line)
-                              (elyo--match-replaced matched)
-                              (pos-bol) (pos-eol))))
+  (when (and elyo-python-type-ignore (elyo-python-is-type-ignore?))
+    (elyo-python--current-line-replace
+     (string-trim-right (string-remove-suffix (match-string-no-properties 0)
+                                              (elyo--current-line))))))
 
 
 ;;;###autoload
@@ -179,7 +165,13 @@
   (when elyo-python-type-ignore
     (save-excursion
       (elyo--while-regex (elyo-python-command-regex elyo-python-type-ignore)
-                         'elyo-python-ignore-remove-match))))
+                         'elyo-python-ignore-remove))))
+
+
+(defun elyo-python--current-line-replace (new-line)
+  "Replace current line with NEW-LINE."
+  (replace-string-in-region
+   (elyo--current-line) new-line (pos-bol) (pos-eol)))
 
 
 (defcustom elyo-python-formatter-on nil
