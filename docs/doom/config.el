@@ -85,7 +85,6 @@
         pydyn-stub-path "<Pfad zum Stubs-Ordner>"
         elyo-source-root (file-truename pydyn-source)
         elyo-source-root  (file-truename pydyn-export)
-        elyo-python-intern-path ""
         elyo-python-formatter-off "# autopep8: off"
         elyo-python-formatter-on "# autopep8: on"
         elyo-python-type-ignore "# type: ignore"

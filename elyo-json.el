@@ -149,14 +149,6 @@ If AS-STRING is non-nil value contain with surounding \"."
             :name (elyo--json-prop-get "Name" start end)))))
 
 
-(defun elyo--script-node-? (node)
-  "Return non-nil if NODE is python script node."
-  (and (string-equal (gethash "ConcreteType" node)
-                     "PythonNodeModels.PythonNode, PythonNodeModels")
-       (string-equal (gethash "NodeType" node)
-                     "PythonScriptNode")))
-
-
 (defun elyo--json-narrow-key (json-key)
   "Narrow buffer to content of JSON-KEY."
   (goto-char (point-min))
@@ -191,7 +183,6 @@ If AS-STRING is non-nil value contain with surounding \"."
 
 
 (defvar buffer-cache (make-hash-table) "Cached node-info.")
-;; (defvar buffer-cache nil "Cached node-info.")
 
 
 (defun elyo--json-buffer-cache-add (file-path node-cache)
@@ -199,9 +190,6 @@ If AS-STRING is non-nil value contain with surounding \"."
   (unless buffer-cache
     (setq buffer-cache (make-hash-table)))
   (puthash file-path node-cache buffer-cache))
-;; (when buffer-cache
-;;   (assoc-delete-all file-path buffer-cache))
-;; (push `(,file-path ,node-cache) buffer-cache))
 
 
 (defun elyo-json-buffer-cache-reset ()
@@ -220,7 +208,6 @@ If AS-STRING is non-nil value contain with surounding \"."
   "Reset node cache of FILE-PATH in buffer-cache."
   (when buffer-cache
     (remhash file-path buffer-cache)))
-;; (assoc-delete-all file-path buffer-cache)))
 
 
 (defun elyo--node-cache-add-names (nodes-cache)
@@ -256,12 +243,10 @@ If AS-STRING is non-nil value contain with surounding \"."
   (elyo-is-dynamo-or-error file-path)
   (unless buffer-cache
     (setq buffer-cache (make-hash-table)))
-  ;; (unless (assoc file-path buffer-cache)
   (unless (gethash file-path buffer-cache)
-    (message "Create node info cashe %s" (file-name-base file-path))
+    (message "Create node info cache %s" (file-name-base file-path))
     (elyo--json-node-infos-create file-path))
   (gethash file-path buffer-cache))
-;; (cadr (assoc file-path buffer-cache)))
 
 
 (defun elyo-json-node-info-by (file-path node-id)
