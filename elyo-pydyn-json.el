@@ -102,6 +102,19 @@ If AS-STRING is non-nil value contain with surounding \"."
     ('error default)))
 
 
+(defun elyo-pydyn-dynamo-decode (code)
+  "Return CODE decoded from Json / Dynamo."
+  (with-temp-buffer
+    (insert code)
+    (goto-char (point-min))
+    (json-read-string)))
+
+
+(defun elyo-pydyn-dynamo-encode (code)
+  "Return CODE encoded for Json / Dynamo."
+  (json-encode-string code))
+
+
 (defvar :node-id (make-symbol "node-id")
   "NODE-ID of node.")
 (defvar :node-info (make-symbol "node-info")
@@ -133,7 +146,8 @@ If AS-STRING is non-nil value contain with surounding \"."
         (list :node-id (elyo-pydyn--json-prop-get "Id" start end)
               :code (elyo-pydyn-buffer-substring code-start code-end)
               :code-line (1- (line-number-at-pos code-start t))
-              :engine (elyo-pydyn--json-prop-get "Engine" start end "IronPython2")
+              :engine (elyo-pydyn--json-prop-get "Engine" start end
+                                                 elyo-pydyn-python-2-engine)
               :path (buffer-file-name)
               :node-start (1- (line-number-at-pos start t))
               :node-end (1- (line-number-at-pos end t)))))))

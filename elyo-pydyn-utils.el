@@ -286,32 +286,6 @@ Otherwise they are really slow down the process. See `lsp-disabled-clients'"
 
 
 ;;;###autoload
-(defcustom elyo-pydyn-python-2-name  "IronPython2"
-  "Name of python 2 code / engine."
-  :type 'string
-  :group 'elyo-pydyn)
-
-
-;;;###autoload
-(defcustom elyo-pydyn-python-3-name "CPython3"
-  "Name of python 3 code / engine."
-  :type 'string
-  :group 'elyo-pydyn)
-
-
-;;;###autoload
-(defun elyo-pydyn-is-python-2? (engine)
-  "Return non-nil when ENGINE is PYTHON 2 engine."
-  (and engine (equal engine elyo-pydyn-python-2-name)))
-
-
-;;;###autoload
-(defun elyo-pydyn-is-python-3? (engine)
-  "Return non-nil when ENGINE is CPython 3 engine."
-  (and engine (string-equal engine elyo-pydyn-python-3-name)))
-
-
-;;;###autoload
 (defun elyo-pydyn-buffer-tabify ()
   "Convert buffer from SPACE to TABS indentation."
   (interactive)

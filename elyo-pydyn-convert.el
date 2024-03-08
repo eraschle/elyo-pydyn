@@ -30,7 +30,6 @@
 
 (require 'ws-butler)
 (require 'evil-lion)
-(require 'json)
 
 (defvar-local node-uuid nil "Unique node id in the source file.")
 (put 'node-uuid 'safe-local-variable (lambda (_) t))
@@ -43,15 +42,6 @@
 
 (defvar-local node-export nil "Export path for preview buffers.")
 (put 'node-export 'safe-local-variable (lambda (_) t))
-
-(defvar :py-short (make-symbol "py-short")
-  "Symbol for python abbrev.")
-(defvar :py-engine (make-symbol "py-engine")
-  "Symbol for python abbrev.")
-
-(defvar elyo-pydyn--python-abbrev (list (list :py-short "py2" :py-engine "IronPython2")
-                                        (list :py-short "py3" :py-engine "CPython3"))
-  "List with values to transfer code between Emacs und Dynamo.")
 
 
 (defun elyo-pydyn-local-var? ()
@@ -86,7 +76,7 @@
 (defun elyo-pydyn-export-path (node-info)
   "Return export python file path for NODE-INFO."
   (concat (elyo-pydyn-path-export-folder (plist-get node-info :path))
-          (elyo-pydyn-path-export-file-name node-info elyo-pydyn--python-abbrev)))
+          (elyo-pydyn-path-export-file-name node-info)))
 
 
 (defun elyo-pydyn-export-path-all (file-path)
@@ -97,19 +87,12 @@
              (elyo-pydyn-python-nodes-in file-path))))
 
 
-(defun elyo-pydyn--convert-decode-code (node-info)
-  "Return decoded code from NODE-INFO."
-  (with-temp-buffer
-    (insert (plist-get node-info :code))
-    (goto-char (point-min))
-    (json-read-string)))
-
-
 (defun elyo-pydyn-code-in-buffer (buffer node-info &optional callback)
   "Return BUFFER with cleaned code from NODE-INFO.
 CALLBACK is applied to clean exported code."
   (let ((engine (plist-get node-info :engine))
-        (code (elyo-pydyn--convert-decode-code node-info)))
+        (code (elyo-pydyn-dynamo-encode
+               (plist-get node-info :code))))
     (with-current-buffer buffer
       (let ((coding-system-for-read 'utf-8)
             (coding-system-for-write 'utf-8)
@@ -205,7 +188,7 @@ CLEAN-CB is applied to clean exported code. Unless last buffer,
       (delete-trailing-whitespace (point-min) (point-max))
       ;; Dynamo use always tabs and \n in JSON string...
       (elyo-pydyn-buffer-tabify)
-      (json-encode-string
+      (elyo-pydyn-dynamo-encode
        (string-trim (elyo-pydyn-buffer-substring (point-min) (point-max))
                     "[\n]*" "[\n]*")))))
 

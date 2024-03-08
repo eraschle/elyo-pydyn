@@ -33,6 +33,18 @@
   :group 'elyo-pydyn)
 
 
+(defcustom elyo-pydyn-python-2-engine "IronPython2"
+  "Python 2 engine name of code."
+  :type 'string
+  :group 'elyo-pydyn)
+
+
+(defcustom elyo-pydyn-python-3-engine "CPython3"
+  "Python 3 engine name of code."
+  :type 'string
+  :group 'elyo-pydyn)
+
+
 (defcustom elyo-dynamo-script-ext "dyn"
   "Extension of dynamo script."
   :type 'list
@@ -130,6 +142,18 @@
   "Return non-nil when FILE-PATH is inside of `elyo-source-root'."
   (let ((file-path (eylo-pydyn-path-get file-path)))
     (and (elyo-pydyn-is-source? file-path) (elyo-pydyn-is-dynamo? file-path))))
+
+
+;;;###autoload
+(defun elyo-pydyn-is-python-2? (engine)
+  "Return non-nil when ENGINE is PYTHON 2 engine."
+  (and engine (equal engine elyo-pydyn-python-2-engine)))
+
+
+;;;###autoload
+(defun elyo-pydyn-is-python-3? (engine)
+  "Return non-nil when ENGINE is CPython 3 engine."
+  (and engine (string-equal engine elyo-pydyn-python-3-engine)))
 
 
 (defun elyo-pydyn-is-python? (&optional file-path)
@@ -233,15 +257,6 @@
   "Character to separate names and not allowed names.")
 
 
-(defun elyo-pydyn--path-py-abbrev-of (node-info python-maps)
-  "Return abbrev from PYTHON-MAPS of python engine in NODE-INFO."
-  (catch 'found-it
-    (dolist (py-map python-maps)
-      (when (equal (plist-get py-map :py-engine)
-                   (plist-get node-info :engine))
-        (throw 'found-it (plist-get py-map :py-short))))))
-
-
 (defun elyo-pydyn--path-clean-name (value)
   "Return cleaned VALUE with all `elyo-pydyn-path-clean-lookup' replaced."
   (dolist (replace-value elyo-pydyn-path-clean-lookup)
@@ -255,17 +270,24 @@
                "[__]+" "_" value)))
 
 
-(defun elyo-pydyn-path-export-name (node-info python-maps)
-  "Return export name created from NODE-INFO and PYTHON-MAPS."
+(defun elyo-pydyn--path-py-abbrev-of (node-info)
+  "Return abbrev from python engine in NODE-INFO."
+  (let ((engine (plist-get node-info :engine)))
+    (cond ((elyo-pydyn-is-python-3? engine) "py3")
+          (t "py2"))))
+
+
+(defun elyo-pydyn-path-export-name (node-info)
+  "Return export name created from NODE-INFO."
   (s-join elyo-pydyn-path-name-separator ;; join names together with _
           (list (elyo-pydyn--path-clean-name (plist-get node-info :name))
-                (elyo-pydyn--path-py-abbrev-of node-info python-maps)
+                (elyo-pydyn--path-py-abbrev-of node-info)
                 (elyo-pydyn--path-clean-name (plist-get node-info :node-id)))))
 
 
-(defun elyo-pydyn-path-export-file-name (node-info python-maps)
-  "Return export file name created from NODE-INFO and PYTHON-MAPS."
-  (let ((file-name (elyo-pydyn-path-export-name node-info python-maps)))
+(defun elyo-pydyn-path-export-file-name (node-info)
+  "Return export file name created from NODE-INFO."
+  (let ((file-name (elyo-pydyn-path-export-name node-info)))
     (s-downcase (concat file-name "." elyo-python-extension))))
 
 
