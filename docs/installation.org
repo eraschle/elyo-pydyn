@@ -25,7 +25,7 @@
 - Windows 10
 - WSL 2.0
 - Ubuntu 22.04
-- Emacs 28 — nativ compilation
+- Emacs 28 oder 29.2
 ** Vorlagen
 
 Die Anleitungen basieren auf eigenen Erkenntnissen von mehreren Installationen.
@@ -284,18 +284,195 @@ Neuer und sehr schnell Linter, geschrieben in RUST, kann für Python unter LSP u
 Kann über pip Installiert werden
 
 * EMACS & DOOM
-** =Emacs=
+** =EMACS=
+Immer =NATIVCOMP= verwenden, da ein vielfaches schneller als
+*** Emacs 28: Install mit APT
 
 [[https://launchpad.net/~kelleyk/+archive/ubuntu/emacs][Übersicht vorhandener EMACS Versionen]]
-
-Ich verwende Emacs 29 und compile selber. Anleitungen sind im Internet auffindbar...
-=NATIVCOMP= verwenden, da schneller
 
 #+begin_src bash  :tangle no
 sudo apt update && sudo apt upgrade
 sudo add-apt-repository ppa:kelleyk/emacs
 sudo apt update
 sudo apt -y install emacs28-nativecomp
+#+end_src
+
+*** Emacs 29.2: Build from source
+
+Ubuntu 22.04 auf WSL1 / WSL2
+
+**** Clone Emacs
+
+#+begin_src bash  :tangle no
+cd ~/temp/
+git clone --branch emacs-29 git://git.savannah.gnu.org/emacs.git
+git checkout tags/emacs-29.2
+#+end_src
+
+**** Essential dependencies.
+
+Nur nicht auskommentierte Libaraies kopieren und in das WSL Terminal kopieren
+
+#+begin_src bash :tangle yes
+sudo apt update -y && sudo apt upgrade -y
+sudo apt update -y && sudo apt install  \
+    build-essential \
+    attr \
+    autoconf \
+    dnsutils \
+    docbook-xsl \
+    g++-11 \
+    gcc-11 \
+    gdb \
+    gnutls-bin \
+    imagemagick \
+    libacl1-dev \
+    libattr1-dev \
+    libblkid-dev \
+    libbsd-dev \
+    libcups2-dev \
+    libgccjit-11-dev \
+    libgccjit0 \
+    libgif-dev \
+    libgnutls28-dev \
+    libjansson-dev \
+    libjansson4 \
+    libjpeg-dev \
+    libmagick++-dev \
+    libncurses-dev \
+    libpng-dev \
+    libtiff5-dev \
+    libtree-sitter-dev \
+    libxpm-dev \
+    mailutils \
+    texinfo \
+    # libwebkit2gtk-4.1-dev \
+    # libgtk-3-dev
+    # libwebkit2gtk-4.0-dev
+#+end_src
+
+**** Native JIT compilation support
+
+#+begin_src bash :tangle yes
+sudo apt install -y
+    gcc-11 \
+    g++-11 \
+    libgccjit0 \
+    libgccjit-11-dev
+#+end_src
+
+**** Optional
+
+Die Installation ist von Compiler flags abhängig
+
+***** --with-mailutils
+
+Get GNU Mailutils (protocol-independent mail framework).
+
+#+begin_src bash
+sudo apt install -y mailutils
+#+end_src
+
+***** --with-tree-sitter
+
+Emacs built-in support von [[https://tree-sitter.github.io/tree-sitter/][TreeSitter]].
+
+#+begin_src bash
+sudo apt install -y libtree-sitter-dev
+#+end_src
+
+***** --with-xwidgets
+
+For webkit support.
+=GTK= mit =webkit= können auf WSL 1 nicht ausgeführt werden.
+
+#+begin_src bash
+sudo apt install -y libwebkit2gtk-4.1-dev
+#+end_src
+**** Export Variablen
+
+Werden zum Kompilieren von =libgccjit= benötigt. Die zweite Anweisung ist nur nötig, wenn =webkit= installiert werden soll.
+
+#+begin_src bash
+export CC=/usr/bin/gcc-10 CXX=/usr/bin/g++-10
+export WEBKIT_DISABLE_COMPOSITING_MODE=1
+#+end_src
+
+**** Compiler konfigurieren
+
+Beschreibung aus meiner Vorlage. Kein Wissen über Compiler, weshalb mehrere Anleitungen ausprobiert wurden und diese Version verwendet wird.
+
+| Flag                | Compiler flags                                                                              |
+|---------------------+---------------------------------------------------------------------------------------------|
+| O2                  | Turn on a bunch of optimization flags.                                                      |
+| 03                  | Compare to 02 increases instruction cache footprint, which may end up reducing performance. |
+| pipe                | Reduce temporary files to the minimum.                                                      |
+| mtune=native        | Optimize code for the local machine (under ISA constraints).                                |
+| march=native        | Enable all instruction subsets supported by the local machine.                              |
+| fomit-frame-pointer | I'm not sure what this does yet...                                                          |
+
+#+begin_src bash
+./autogen.sh && ./configure \
+    --with-native-compilation \
+    --with-cairo \
+    --with-gnutls \
+    --with-imagemagick \
+    --with-included-regex \
+    --with-jpeg \
+    --with-json \
+    --with-mailutils \
+    --with-modules \
+    --with-png \
+    --with-threads \
+    --with-tiff \
+    --with-tree-sitter \
+    --with-xft \
+    --with-xml2 \
+    --with-xpm \
+    --with-zlib \
+    --with-x \
+    --with-x-toolkit=yes \
+    --with-xwidgets \
+    CC="/usr/bin/gcc-11" \
+    CXX="/usr/bin/g++-11" \
+    CFLAGS="-O2 -pipe -mtune=native -march=native -fomit-frame-pointer"
+#+end_src
+
+**** Make
+
+Auf Fehlermeldungen achten. Können hilfreich sein, wenn Fehler auftauchen und das make Skript abgebrochen wird.
+
+***** Anzahl CPU definieren
+
+2 CPU werden nicht für das =make= Skript verwendet. Der PC sollte noch bedienbar sein.
+
+#+begin_src bash
+JOBS=`nproc --ignore=2`
+make -j=JOBS NATIVE_FULL_AOT=1 && sudo make install
+#+end_src
+
+***** ALLE CPU
+
+Damit werden über eine längere Zeit alle CPU zu 100% beansprucht, deshalb keine andere Programme ausführen...
+
+#+begin_src bash
+make -j NATIVE_FULL_AOT=1 && sudo make install
+#+end_src
+
+**** Install
+
+Die Dateien sollten unter =/usr/local/bin= installiert werden.
+
+#+begin_src bash
+sudo make install
+#+end_src
+
+**** Überprüfen
+
+Den Befehl ausführen und überprüfen, ob die gerade installierte Version angezeigt wird.
+
+#+begin_src bash
+emacs --version
 #+end_src
 
 ** =DOOM=
@@ -374,6 +551,10 @@ Datei speichern und doom schliessen (SPC q q) anschliessend im Terminal den Befe
 #+begin_src bash  :tangle no
 doom sync
 #+end_src
+** X-Server
+
+Damit DOOM Emacs mit UI verwendet werden kann, muss ein [[https://en.wikipedia.org/wiki/Windowing_system#Display_server][X-Server]] in Windows installiert werden. Ich benutze [[https://www.microsoft.com/store/productId/9NL6KD1H33V3?ocid=pdpshare][GWSL]] aus dem Windows Store.
+Es sollte auch eine gratis Variante vorhanden sein. Vielleicht muss diese über den Hersteller heruntergeladen und installiert werden.
 
 * $PATH konfigurieren
 Ermöglicht, dass die PATH Variable beim Öffnen eines Terminals angepasst werden. Ich hatte Probleme, dass anstatt das Linux Programm (python und pyenv) die Installation von Windows verwendet wurde, weil die Windows-Pfade erschienen. Anwendung auf eigene Gefahr...
