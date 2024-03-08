@@ -69,12 +69,6 @@
   :group 'elyo-pydyn)
 
 
-(defcustom elyo-python-intern-path nil
-  "Root path of Python files used in scripts."
-  :type 'string
-  :group 'elyo-pydyn)
-
-
 (defun eylo-pydyn-path-get (&optional file-path)
   "Return FILE-PATH buffer if non-nil, otherwise path of current buffer."
   (or file-path buffer-file-name))
@@ -168,15 +162,6 @@
     (elyo-pydyn-is-export-or-error file-path)
     (unless (elyo-pydyn-is-python-export? file-path)
       (user-error "%s is NOT a Python file" (file-name-base file-path)))))
-
-
-;;;###autoload
-(defun elyo-pydyn-is-python-intern? (&optional file-path)
-  "Return non-nil when FILE-PATH or current buffer is PYTHON internal package."
-  (and (elyo-pydyn-is-python? file-path)
-       (not (s-blank? elyo-python-intern-path))
-       (s-contains? elyo-python-intern-path
-                    (eylo-pydyn-path-get file-path) t)))
 
 
 ;;;###autoload

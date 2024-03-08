@@ -34,7 +34,7 @@
     (pydyn-formatter-config)
     (pydyn-pyright-config)
     (when (or (elyo-pydyn-is-python-2? node-engine)
-              (elyo-pydyn-is-python-intern?))
+              (elyo-pydyn-is-python-source?))
       (pydyn-py2-config))
     (when (elyo-pydyn-is-python-3? node-engine)
       (pydyn-py3-config))
