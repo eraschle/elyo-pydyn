@@ -60,7 +60,7 @@
   "Hooks run before convert process has started."
   (setq pydyn--python-disable-hook json-mode-hook
         json-mode-hook nil)
-  ;; Will be overwriten/deleted after convert file
+  ;; Will be overwritten/deleted after convert file
   (add-hook 'json-mode-hook #'elyo-dynamo-json-config))
 
 (defun pydyn-python-convert-end-h ()
@@ -101,14 +101,14 @@
                                          "Assign your output to the OUT variable."
                                          "Weisen Sie Ihre Ausgabe der OUT-Variablen zu.")
 
-        ;; A tyoe: ignore is added if one regex match
+        ;; A type: ignore is added if one regex match
         elyo-python-type-ignore-regex (list elyo-dynamo-input-regex
                                             "import [a-zA-z ,]*Enum"
                                             "UnwrapElement(.*)"
                                             "clr.Reference\[[a-zA-Z]+\]\(\)"
                                             "List\[[a-zA-Z]+\]\(.*\)")
 
-        ;; A tyoe: ignore is added if a row contain a item in this list
+        ;; A type: ignore is added if a row contain a item in this list
         elyo-python-type-ignore-contain (list "dataEnteringNode = IN"
                                               "clr.ImportExtensions(Revit.Elements)"
                                               "clr.ImportExtensions(Revit.GeometryConversion)"
@@ -172,7 +172,7 @@
   (map! :map json-mode-map
         :localleader
         (:prefix ("y" . "elyo BIM")
-         :desc "Script to Pyhton"              :n "s" #'elyo-dynamo-script-to-python
+         :desc "Script to Python"              :n "s" #'elyo-dynamo-script-to-python
          :desc "Folder To Python"              :n "f" #'elyo-dynamo-folder-to-python
          :desc "Jump to node"                  :n "j" #'elyo-dynamo-jump-to-node
          :desc "Preview node"                  :n "p" #'elyo-dynamo-python-code-preview

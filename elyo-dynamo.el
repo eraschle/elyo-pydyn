@@ -27,7 +27,6 @@
 
 (require 'elyo-pydyn-utils)
 (require 'elyo-python)
-(require 'ws-butler)
 
 (require 'view)
 
@@ -346,7 +345,7 @@ SWITCH-OR-KILL last export buffer afterwards."
 
 ;;;###autoload
 (defun elyo-dynamo-mode-off ()
-  "Deaktivert `elyo-dynamo-mode'."
+  "Deaktiviert `elyo-dynamo-mode'."
   (interactive)
   (elyo-dynamo-mode -1))
 

@@ -28,9 +28,6 @@
 (require 'elyo-pydyn-path)
 (require 'elyo-pydyn-utils)
 
-(require 'ws-butler)
-(require 'evil-lion)
-
 (defvar-local node-uuid nil "Unique node id in the source file.")
 (put 'node-uuid 'safe-local-variable (lambda (_) t))
 
@@ -91,7 +88,7 @@
   "Return BUFFER with cleaned code from NODE-INFO.
 CALLBACK is applied to clean exported code."
   (let ((engine (plist-get node-info :engine))
-        (code (elyo-pydyn-dynamo-encode
+        (code (elyo-pydyn-dynamo-decode
                (plist-get node-info :code))))
     (with-current-buffer buffer
       (let ((coding-system-for-read 'utf-8)
@@ -138,7 +135,7 @@ CALLBACK is applied to clean exported code."
       ;; Go to first line of code
       (goto-char (point-min))
       (when export-exist
-        ;; Beecause of file local vars, start at second line
+        ;; Because of file local vars, start at second line
         (forward-line))
       (while (string-blank-p (elyo-pydyn-current-line))
         (forward-line))
@@ -155,7 +152,7 @@ CALLBACK is applied to clean exported code."
       (elyo-pydyn--convert-buffer-local-set node-info nil)
       ;; Go to first line of code
       (goto-char (point-min))
-      ;; Beecause of file local vars, start at second line
+      ;; Because of file local vars, start at second line
       (forward-line)
       (while (string-blank-p (elyo-pydyn-current-line))
         (forward-line))
@@ -239,6 +236,15 @@ CLEAN-CB is applied to clean exported code. Unless last buffer,
     (elyo-pydyn-json-select-code-of
      node-id (string-trim code trim trim))
     (elyo-pydyn--cursor-to-left-border)))
+
+
+(defun elyo-pydyn--cursor-to-left-border ()
+  "Scroll the screen that the cursor is close to left border."
+  (if (= 0 (window-left-column))
+      (scroll-left (1- (current-column)))
+    (scroll-left (1- (- (current-column) (window-left-column)))))
+  (scroll-right 5)
+  (recenter))
 
 
 (defun elyo-pydyn-dynamo-file-info ()

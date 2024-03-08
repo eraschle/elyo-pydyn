@@ -69,7 +69,7 @@
   :group 'elyo-pydyn)
 
 
-(defun eylo-pydyn-path-get (&optional file-path)
+(defun elyo-pydyn-path-get (&optional file-path)
   "Return FILE-PATH buffer if non-nil, otherwise path of current buffer."
   (or file-path buffer-file-name))
 
@@ -107,14 +107,14 @@
 ;;;###autoload
 (defun elyo-dynamo-is-script? (&optional file-path)
   "Return non-nil when FILE-PATH is Dynamo SCRIPT."
-  (elyo-pydyn--path-is-ext? (eylo-pydyn-path-get file-path)
+  (elyo-pydyn--path-is-ext? (elyo-pydyn-path-get file-path)
                             elyo-dynamo-script-ext))
 
 
 ;;;###autoload
 (defun elyo-dynamo-is-custom? (&optional file-path)
   "Return non-nil when FILE-PATH is Dynamo CUSTOM NODE."
-  (elyo-pydyn--path-is-ext? (eylo-pydyn-path-get file-path)
+  (elyo-pydyn--path-is-ext? (elyo-pydyn-path-get file-path)
                             elyo-dynamo-custom-ext))
 
 
@@ -127,14 +127,14 @@
 ;;;###autoload
 (defun elyo-pydyn-is-dynamo-or-error (&optional file-path)
   "Throw user error if FILE-PATH is not a subpath of `elyo-source-root'."
-  (let ((file-path (eylo-pydyn-path-get file-path)))
+  (let ((file-path (elyo-pydyn-path-get file-path)))
     (unless (elyo-pydyn-is-dynamo? file-path)
       (user-error "%s is NOT a Dynamo file" (file-name-base file-path)))))
 
 
 (defun elyo-pydyn-is-dynamo-source? (&optional file-path)
   "Return non-nil when FILE-PATH is inside of `elyo-source-root'."
-  (let ((file-path (eylo-pydyn-path-get file-path)))
+  (let ((file-path (elyo-pydyn-path-get file-path)))
     (and (elyo-pydyn-is-source? file-path) (elyo-pydyn-is-dynamo? file-path))))
 
 
@@ -152,13 +152,13 @@
 
 (defun elyo-pydyn-is-python? (&optional file-path)
   "Return non-nil when FILE-PATH or current buffer is PYTHON."
-  (elyo-pydyn--path-is-ext? (eylo-pydyn-path-get file-path)
+  (elyo-pydyn--path-is-ext? (elyo-pydyn-path-get file-path)
                             elyo-python-extension))
 
 
 (defun elyo-pydyn-is-python-export-or-error (&optional file-path)
   "Throw user error if FILE-PATH or current buffer is not a python-file."
-  (let ((file-path (eylo-pydyn-path-get file-path)))
+  (let ((file-path (elyo-pydyn-path-get file-path)))
     (elyo-pydyn-is-export-or-error file-path)
     (unless (elyo-pydyn-is-python-export? file-path)
       (user-error "%s is NOT a Python file" (file-name-base file-path)))))
@@ -167,7 +167,7 @@
 ;;;###autoload
 (defun elyo-pydyn-is-python-export? (&optional file-path)
   "Return non-nil when FILE-PATH is inside of `elyo-export-root'."
-  (let ((file-path (eylo-pydyn-path-get file-path)))
+  (let ((file-path (elyo-pydyn-path-get file-path)))
     (and (elyo-pydyn-is-export? file-path)
          (elyo-pydyn-is-python? file-path))))
 
@@ -175,7 +175,7 @@
 ;;;###autoload
 (defun elyo-pydyn-is-python-source? (&optional file-path)
   "Return non-nil when FILE-PATH is inside of `elyo-export-root'."
-  (let ((file-path (eylo-pydyn-path-get file-path)))
+  (let ((file-path (elyo-pydyn-path-get file-path)))
     (and (elyo-pydyn-is-source? file-path)
          (elyo-pydyn-is-python? file-path))))
 

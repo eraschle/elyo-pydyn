@@ -21,17 +21,12 @@
 ;;
 ;;; Commentary:
 ;;
-;; This module provides everything esle
+;; This module provides everything else
 ;;
 ;;; Code:
 
 (require 'lsp)
 (require 'lsp-headerline)
-(require 'recentf)
-(require 's)
-(require 'subr-x)
-(require 'undo-fu-session)
-(require 'evil-vars)
 
 (defcustom elyo-pydyn-keymap-prefix "C-c C-y"
   "Prefix for `elyo-dynamo' and `elyo-python' minor mode bindings."
@@ -106,7 +101,7 @@
 
 (defun elyo-pydyn-buffer-substring (start end &optional with-properties)
   "Return buffer substring between START and END.
-WITH-PROPERTIES controll if the substring contains properties or not."
+WITH-PROPERTIES control if the substring contains properties or not."
   (if with-properties
       (buffer-substring start end)
     (buffer-substring-no-properties start end)))
@@ -114,17 +109,8 @@ WITH-PROPERTIES controll if the substring contains properties or not."
 
 (defun elyo-pydyn-current-line (&optional with-properties)
   "Return current line at point of the current buffer.
-WITH-PROPERTIES controll if the substring contains properties or not."
+WITH-PROPERTIES control if the substring contains properties or not."
   (elyo-pydyn-buffer-substring (pos-bol) (pos-eol) with-properties))
-
-
-(defun elyo-pydyn--cursor-to-left-border ()
-  "Scroll the screen that the cursor is close to left border."
-  (if (= 0 (window-left-column))
-      (scroll-left (1- (current-column)))
-    (scroll-left (1- (- (current-column) (window-left-column)))))
-  (scroll-right 5)
-  (recenter))
 
 
 (defun elyo-pydyn-while-search (search-for action-cb &optional do-action-cb ignore-case)
@@ -171,7 +157,7 @@ WITH-PROPERTIES controll if the substring contains properties or not."
 
 
 (defun elyo-selection-get (paths prompt &optional prefix)
-  "Return user path selction from PATHS. PROMPT is show to user.
+  "Return user path selection from PATHS. PROMPT is show to user.
 PREFIX will be removed from PATHS."
   (let* ((name-and-path (elyo-pydyn--name-with-path-list (-flatten paths) prefix))
          (selected (completing-read prompt name-and-path nil t))
@@ -194,7 +180,7 @@ PROMPT is show to user and INITIAL-INPUT is pre selected if non-nil."
 (defun elyo-pydyn-choose-switch-or-kill (name)
   "Return User selection buffer of NAME (Python/Dynamo)."
   (let ((kill (format "Kill %s buffer." name))
-        (switch (format "Switch to %s buffer (same windpw)." name))
+        (switch (format "Switch to %s buffer (same window)." name))
         (switch-other (format "Switch to %s buffer (other window)." name)))
     (let ((selected (elyo-pydyn-choose-get (list switch-other switch kill)
                                            "Choose action?: ")))
@@ -261,7 +247,6 @@ Otherwise they are really slow down the process. See `lsp-disabled-clients'"
 ;;;###autoload
 (defun elyo-pydyn-disable-lsp-clients ()
   "Disable lsp clients in `elyo-pydyn-lsp-client'."
-  ;; (recentf-mode -1)
   (setq lsp-disabled-clients elyo-pydyn-lsp-client)
   (run-hooks 'elyo-pydyn-process-start-hook)
   (setq elyo-pydyn-processing t))
@@ -272,9 +257,7 @@ Otherwise they are really slow down the process. See `lsp-disabled-clients'"
   "Enable LSP-client and restore attributes."
   (setq elyo-pydyn-processing nil)
   (run-hooks 'elyo-pydyn-process-end-hook)
-  (setq lsp-disabled-clients nil)
-  ;; (recentf-mode 1)
-  )
+  (setq lsp-disabled-clients nil))
 
 
 ;;;###autoload
@@ -303,34 +286,16 @@ Otherwise they are really slow down the process. See `lsp-disabled-clients'"
   (untabify (point-min) (point-max)))
 
 
-(defun elyo-pydyn-buffer-breadcrump-on ()
+(defun elyo-pydyn-buffer-breadcrumb-on ()
   "Convert buffer from TAB to SPACE indentation."
   (setq lsp-headerline-breadcrumb-enable t
         lsp-headerline-breadcrumb-enable-symbol-numbers t))
 
 
-(defun elyo-pydyn-buffer-breadcrump-off ()
+(defun elyo-pydyn-buffer-breadcrumb-off ()
   "Convert buffer from TAB to SPACE indentation."
   (setq lsp-headerline-breadcrumb-enable nil
         lsp-headerline-breadcrumb-enable-symbol-numbers nil))
-
-
-(defun elyo-pydyn-plist-keys (plist)
-  "Return the keys in PLIST."
-  (let (keys)
-    (while plist
-      (setq keys (cons (car plist) keys))
-      (setq plist (cdr (cdr plist))))
-    keys))
-
-
-(defun elyo-pydyn-plist-values (plist)
-  "Return the values in PLIST."
-  (let (keys)
-    (while plist
-      (setq keys (cons (car (cdr plist)) keys))
-      (setq plist (cdr (cdr plist))))
-    keys))
 
 
 (provide 'elyo-pydyn-utils)

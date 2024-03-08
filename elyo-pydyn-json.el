@@ -42,7 +42,7 @@ Otherwise search value for value is return."
 (defun elyo-pydyn--goto-key (key-name &optional from-point bound check-narrow)
   "Return end position of KEY-NAME.
 If FROM-POINT is non-nil searching begin from point-min
-and BOUND is searching boundery. No error is thrown when buffer is not narrow,
+and BOUND is searching boundary. No error is thrown when buffer is not narrow,
 if CHECK-NARROW is non-nil."
   (when (and check-narrow (not (buffer-narrowed-p)))
     (error "Expect buffer is narrowed to node content"))
@@ -55,8 +55,8 @@ if CHECK-NARROW is non-nil."
 (defun elyo-pydyn--key-value-start (key-name &optional from-point bound as-string)
   "Return start position of macht-result for KEY-NAME.
 If FROM-POINT is non-nil searching begin from point-min
-and BOUND is searching boundery.
-If AS-STRING is non-nil value contain with surounding \"."
+and BOUND is searching boundary.
+If AS-STRING is non-nil value contain with surrounding \"."
   (save-excursion
     (elyo-pydyn--goto-key key-name from-point bound)
     (+ (match-end 0) (if as-string 1 2))))
@@ -64,15 +64,15 @@ If AS-STRING is non-nil value contain with surounding \"."
 
 (defun elyo-pydyn--key-bool-start (key-name &optional from-point bound)
   "Return start position of boolean value from KEY-NAME.
-If FROM-POINT is non-nil point move to point-min. BOUND is searching boundery."
+If FROM-POINT is non-nil point move to point-min. BOUND is searching boundary."
   (1- (elyo-pydyn--key-value-start key-name from-point bound)))
 
 
 (defun elyo-pydyn--key-value-end (key-name &optional from-point bound as-string)
   "Return end position of value from KEY-NAME.
 If FROM-POINT is non-nil searching begin from point-min
-and BOUND is searching boundery.
-If AS-STRING is non-nil value contain with surounding \"."
+and BOUND is searching boundary.
+If AS-STRING is non-nil value contain with surrounding \"."
   (save-excursion
     (elyo-pydyn--goto-key key-name from-point bound)
     (goto-char (match-end 0))
@@ -81,7 +81,7 @@ If AS-STRING is non-nil value contain with surounding \"."
 
 (defun elyo-pydyn--key-bool-end (key-name &optional from-point bound)
   "Return end position of boolean value from KEY-NAME.
-If FROM-POINT is non-nil point move to point-min. BOUND is searching boundery."
+If FROM-POINT is non-nil point move to point-min. BOUND is searching boundary."
   (1+ (elyo-pydyn--key-value-end key-name from-point bound)))
 
 
@@ -92,7 +92,7 @@ If FROM-POINT is non-nil point move to point-min. BOUND is searching boundery."
 
 (defun elyo-pydyn--json-prop-get (prop start end &optional default as-string)
   "Return PROP value or DEFAULT between START and END.
-If AS-STRING is non-nil value contain with surounding \"."
+If AS-STRING is non-nil value contain with surrounding \"."
   (goto-char start)
   (condition-case _ex
       (let ((value-start (elyo-pydyn--key-value-start prop t end as-string))
@@ -161,14 +161,6 @@ If AS-STRING is non-nil value contain with surounding \"."
       (goto-char start)
       (list :node-id (elyo-pydyn--json-prop-get "Id" start end)
             :name (elyo-pydyn--json-prop-get "Name" start end)))))
-
-
-(defun elyo-pydyn--script-node-? (node)
-  "Return non-nil if NODE is python script node."
-  (and (string-equal (gethash "ConcreteType" node)
-                     "PythonNodeModels.PythonNode, PythonNodeModels")
-       (string-equal (gethash "NodeType" node)
-                     "PythonScriptNode")))
 
 
 (defun elyo-pydyn--json-narrow-key (json-key)
@@ -267,7 +259,7 @@ If AS-STRING is non-nil value contain with surounding \"."
     (setq buffer-cache (make-hash-table)))
   ;; (unless (assoc file-path buffer-cache)
   (unless (gethash file-path buffer-cache)
-    (message "Create node info cashe %s" (file-name-base file-path))
+    (message "Create node info cache %s" (file-name-base file-path))
     (elyo-pydyn--json-node-infos-create file-path))
   (gethash file-path buffer-cache))
 

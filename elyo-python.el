@@ -112,7 +112,7 @@
 
 
 (defcustom elyo-python-type-ignore nil
-  "Comment to supress type checker error."
+  "Comment to suppress type checker error."
   :type 'string
   :group 'elyo-pydyn)
 
@@ -417,7 +417,7 @@ Return point of match or nil."
   "Replace `\\' with `\\\\' in region  of group 1."
   (let* ((value (match-string-no-properties 1))
          (slash (elyo-python-backslash-values value))
-         (start-r? (s-starts-with? "r" value)))
+         (start-r? (string-prefix-p "r" value)))
     (if (s-contains? slash value)
         (replace-string-in-region slash (if start-r? "\\" "\\\\")
                                   (match-beginning 1) (pos-eol)))))
@@ -540,9 +540,9 @@ Return point of match or nil."
         (dolist (file-path (elyo-pydyn-python-files-in directory t))
           (let ((buffer (elyo-pydyn-buffer-by file-path)))
             (with-current-buffer buffer
-              (let ((current-dyn (elyo-python--to-dyn-node)))
-                (unless (or dyn-path (s-equals? current-dyn dyn-path))
-                  (when (and dyn-path (not (s-equals? current-dyn dyn-path)))
+              (let ((current-dyn (elyo-python--to-dynamo-node)))
+                (unless (or dyn-path (string-equal current-dyn dyn-path))
+                  (when (and dyn-path (not (string-equal current-dyn dyn-path)))
                     (elyo-pydyn-buffer-save dyn-path nil t)
                     (message "Dynamo '%s' updated"
                              (string-remove-prefix
@@ -560,11 +560,11 @@ Return point of match or nil."
   (interactive (list (elyo-pydyn-choose-switch-or-kill "Dynamo")))
   (elyo-pydyn-is-python-export-or-error buffer-file-name)
   (let ((dyn-path node-path)
-        (show (s-equals? "yes" (read-answer
-                                "Show geometry? "
-                                '(("yes"  ?y "Do show geometry")
-                                  ("no"   ?n "Do not show geometry")
-                                  ("quit" ?q "exit"))) ))
+        (show (string-equal "yes" (read-answer
+                                   "Show geometry? "
+                                   '(("yes"  ?y "Do show geometry")
+                                     ("no"   ?n "Do not show geometry")
+                                     ("quit" ?q "exit"))) ))
         (switch (elyo-pydyn-is-switch switch-or-kill))
         (other-win (elyo-pydyn-is-switch-other switch-or-kill))
         (kill (elyo-pydyn-is-kill switch-or-kill)))
@@ -583,7 +583,7 @@ Return point of match or nil."
          (switch (elyo-pydyn-is-switch switch-or-kill))
          (other-win (elyo-pydyn-is-switch-other switch-or-kill))
          (kill (elyo-pydyn-is-kill switch-or-kill)))
-    (unless (s-equals? new-name current-name)
+    (unless (string-equal new-name current-name)
       (save-excursion (elyo-pydyn-node-rename new-name)))
     (when (buffer-modified-p (elyo-pydyn-buffer-by dyn-path))
       (elyo-pydyn-buffer-save dyn-path switch other-win kill))))
@@ -599,7 +599,7 @@ Return point of match or nil."
    ((and elyo-python-mode (elyo-pydyn-not-processing?))
     (elyo-python-indent-width-setup)
     (elyo-python-line-length-setup)
-    (elyo-pydyn-buffer-breadcrump-on)
+    (elyo-pydyn-buffer-breadcrumb-on)
     (message "ELYO PYTHON on"))
    ((and elyo-python-mode (not (elyo-pydyn-not-processing?)))
     (setq elyo-python-mode nil)
@@ -632,14 +632,14 @@ Return point of match or nil."
 
 ;;;###autoload
 (defun elyo-python-mode-on ()
-  "Akticate `elyo-dynamo-mode'."
+  "Activate `elyo-dynamo-mode'."
   (interactive)
   (elyo-python-mode 1))
 
 
 ;;;###autoload
 (defun elyo-python-mode-off ()
-  "Deaktivert `elyo-dynamo-mode'."
+  "Deaktiviert `elyo-dynamo-mode'."
   (interactive)
   (elyo-python-mode -1))
 
