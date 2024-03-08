@@ -1,4 +1,4 @@
-;;; elyo-path.el --- DOOM Dynamo package -*- lexical-binding: t; -*-
+;;; elyo-pydyn-path.el --- DOOM Dynamo package -*- lexical-binding: t; -*-
 
 ;; Copyright (c) 2024 Erich Raschle
 ;; Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,7 +25,7 @@
 ;;
 ;;; Code:
 
-(require 'elyo-utils)
+(require 'elyo-pydyn-utils)
 
 (defcustom elyo-python-extension "py"
   "Extension of a python code file."
@@ -63,34 +63,34 @@
   :group 'elyo-pydyn)
 
 
-(defun elyo-path-or-cub (&optional file-path)
+(defun eylo-pydyn-path-get (&optional file-path)
   "Return FILE-PATH buffer if non-nil, otherwise path of current buffer."
   (or file-path buffer-file-name))
 
 
-(defun elyo-is-export? (path)
+(defun elyo-pydyn-is-export? (path)
   "Return non-nil if PATH is an `elyo-source-root'."
   (s-starts-with? elyo-export-root path))
 
 
-(defun elyo-is-export-or-error (path)
+(defun elyo-pydyn-is-export-or-error (path)
   "Throw user error if PATH is not a subpath of `elyo-export-root'."
-  (unless (elyo-is-export? path)
+  (unless (elyo-pydyn-is-export? path)
     (user-error "%s is NOT sub-directory of %s" path elyo-export-root)))
 
 
-(defun elyo-is-source? (path)
+(defun elyo-pydyn-is-source? (path)
   "Return non-nil if PATH is an `elyo-export-root'."
   (s-starts-with? elyo-source-root path))
 
 
-(defun elyo-is-source-or-error (path)
+(defun elyo-pydyn-is-source-or-error (path)
   "Throw user error if PATH is not a subpath of `elyo-source-root'."
-  (unless (elyo-is-source? path)
+  (unless (elyo-pydyn-is-source? path)
     (user-error "%s is NOT sub-directory of %s" path elyo-source-root)))
 
 
-(defun elyo--path-is-ext? (file-path extensions)
+(defun elyo-pydyn--path-is-ext? (file-path extensions)
   "Return non-nil if FILE-PATH extension is in EXTENSIONS."
   (when file-path
     (let ((file-ext (file-name-extension file-path)))
@@ -101,77 +101,77 @@
 ;;;###autoload
 (defun elyo-dynamo-is-script? (&optional file-path)
   "Return non-nil when FILE-PATH is Dynamo SCRIPT."
-  (elyo--path-is-ext? (elyo-path-or-cub file-path)
-                      elyo-dynamo-script-ext))
+  (elyo-pydyn--path-is-ext? (eylo-pydyn-path-get file-path)
+                            elyo-dynamo-script-ext))
 
 
 ;;;###autoload
 (defun elyo-dynamo-is-custom? (&optional file-path)
   "Return non-nil when FILE-PATH is Dynamo CUSTOM NODE."
-  (elyo--path-is-ext? (elyo-path-or-cub file-path)
-                      elyo-dynamo-custom-ext))
+  (elyo-pydyn--path-is-ext? (eylo-pydyn-path-get file-path)
+                            elyo-dynamo-custom-ext))
 
 
-(defun elyo-is-dynamo? (&optional file-path)
+(defun elyo-pydyn-is-dynamo? (&optional file-path)
   "Return non-nil when FILE-PATH is Dynamo SCRIPT or CUSTOM NODE."
   (or (elyo-dynamo-is-script? file-path)
       (elyo-dynamo-is-custom? file-path)))
 
 
 ;;;###autoload
-(defun elyo-is-dynamo-or-error (&optional file-path)
+(defun elyo-pydyn-is-dynamo-or-error (&optional file-path)
   "Throw user error if FILE-PATH is not a subpath of `elyo-source-root'."
-  (let ((file-path (elyo-path-or-cub file-path)))
-    (unless (elyo-is-dynamo? file-path)
+  (let ((file-path (eylo-pydyn-path-get file-path)))
+    (unless (elyo-pydyn-is-dynamo? file-path)
       (user-error "%s is NOT a Dynamo file" (file-name-base file-path)))))
 
 
-(defun elyo-is-dynamo-source? (&optional file-path)
+(defun elyo-pydyn-is-dynamo-source? (&optional file-path)
   "Return non-nil when FILE-PATH is inside of `elyo-source-root'."
-  (let ((file-path (elyo-path-or-cub file-path)))
-    (and (elyo-is-source? file-path) (elyo-is-dynamo? file-path))))
+  (let ((file-path (eylo-pydyn-path-get file-path)))
+    (and (elyo-pydyn-is-source? file-path) (elyo-pydyn-is-dynamo? file-path))))
 
 
-(defun elyo-is-python? (&optional file-path)
+(defun elyo-pydyn-is-python? (&optional file-path)
   "Return non-nil when FILE-PATH or current buffer is PYTHON."
-  (elyo--path-is-ext? (elyo-path-or-cub file-path)
-                      elyo-python-extension))
+  (elyo-pydyn--path-is-ext? (eylo-pydyn-path-get file-path)
+                            elyo-python-extension))
 
 
-(defun elyo-is-python-export-or-error (&optional file-path)
+(defun elyo-pydyn-is-python-export-or-error (&optional file-path)
   "Throw user error if FILE-PATH or current buffer is not a python-file."
-  (let ((file-path (elyo-path-or-cub file-path)))
-    (elyo-is-export-or-error file-path)
-    (unless (elyo-is-python-export? file-path)
+  (let ((file-path (eylo-pydyn-path-get file-path)))
+    (elyo-pydyn-is-export-or-error file-path)
+    (unless (elyo-pydyn-is-python-export? file-path)
       (user-error "%s is NOT a Python file" (file-name-base file-path)))))
 
 
 ;;;###autoload
-(defun elyo-is-python-intern? (&optional file-path)
+(defun elyo-pydyn-is-python-intern? (&optional file-path)
   "Return non-nil when FILE-PATH or current buffer is PYTHON internal package."
-  (and (elyo-is-python? file-path)
+  (and (elyo-pydyn-is-python? file-path)
        (not (s-blank? elyo-python-intern-path))
        (s-contains? elyo-python-intern-path
-                    (elyo-path-or-cub file-path) t)))
+                    (eylo-pydyn-path-get file-path) t)))
 
 
 ;;;###autoload
-(defun elyo-is-python-export? (&optional file-path)
+(defun elyo-pydyn-is-python-export? (&optional file-path)
   "Return non-nil when FILE-PATH is inside of `elyo-export-root'."
-  (let ((file-path (elyo-path-or-cub file-path)))
-    (and (elyo-is-export? file-path)
-         (elyo-is-python? file-path))))
+  (let ((file-path (eylo-pydyn-path-get file-path)))
+    (and (elyo-pydyn-is-export? file-path)
+         (elyo-pydyn-is-python? file-path))))
 
 
 ;;;###autoload
-(defun elyo-is-python-source? (&optional file-path)
+(defun elyo-pydyn-is-python-source? (&optional file-path)
   "Return non-nil when FILE-PATH is inside of `elyo-export-root'."
-  (let ((file-path (elyo-path-or-cub file-path)))
-    (and (elyo-is-source? file-path)
-         (elyo-is-python? file-path))))
+  (let ((file-path (eylo-pydyn-path-get file-path)))
+    (and (elyo-pydyn-is-source? file-path)
+         (elyo-pydyn-is-python? file-path))))
 
 
-(defun elyo--files-in-directory (directory extension &optional recursive)
+(defun elyo-pydyn--files-in-directory (directory extension &optional recursive)
   "Return files of EXTENSION in DIRECTORY, RECURSIVE search if non-nil."
   (let ((files (ensure-list (list))))
     (when (file-exists-p directory)
@@ -182,7 +182,7 @@
     (seq-reverse (flatten-list files))))
 
 
-(defun elyo--path-export-folder-for-source (path)
+(defun elyo-pydyn--path-export-folder-for-source (path)
   "Return translated EXPORT directory of PATH."
   (concat elyo-export-root
           (string-replace elyo-source-root ""
@@ -190,50 +190,50 @@
           (file-name-base path) "/"))
 
 
-(defun elyo--path-export-folder-for-export (path)
+(defun elyo-pydyn--path-export-folder-for-export (path)
   "Return export path with added file-name as directory for PATH."
   (if (file-directory-p path) path (file-name-directory path)))
 
 
-(defun elyo--path-export-folder-for (file-path)
+(defun elyo-pydyn--path-export-folder-for (file-path)
   "Return export path for FILE-PATH."
-  (if (elyo-is-export? file-path)
-      (elyo--path-export-folder-for-export file-path)
-    (elyo--path-export-folder-for-source file-path)))
+  (if (elyo-pydyn-is-export? file-path)
+      (elyo-pydyn--path-export-folder-for-export file-path)
+    (elyo-pydyn--path-export-folder-for-source file-path)))
 
 
-(defun elyo-python-files-in (node-path &optional recursive)
+(defun elyo-pydyn-python-files-in (node-path &optional recursive)
   "Return python files in NODE-PATH, RECURSIVE search if non-nil."
-  (elyo--files-in-directory (elyo--path-export-folder-for node-path)
-                            elyo-python-extension
-                            recursive))
+  (elyo-pydyn--files-in-directory (elyo-pydyn--path-export-folder-for node-path)
+                                  elyo-python-extension
+                                  recursive))
 
 
-(defun elyo-dynamo-files-in (directory &optional recursive)
+(defun elyo-pydyn-dynamo-files-in (directory &optional recursive)
   "Return Dynamo files in DIRECTORY, RECURSIVE search if non-nil."
-  (elyo--files-in-directory directory
-                            (list elyo-dynamo-custom-ext
-                                  elyo-dynamo-script-ext)
-                            recursive))
+  (elyo-pydyn--files-in-directory directory
+                                  (list elyo-dynamo-custom-ext
+                                        elyo-dynamo-script-ext)
+                                  recursive))
 
 
-(defun elyo-path-export-folder (node-path)
+(defun elyo-pydyn-path-export-folder (node-path)
   "Return export directory path for NODE-PATH. Create directory if not exist."
-  (let ((export-dir (elyo--path-export-folder-for node-path)))
+  (let ((export-dir (elyo-pydyn--path-export-folder-for node-path)))
     (unless (file-exists-p export-dir)
       (make-directory export-dir t))
     export-dir))
 
 
-(defvar elyo-path-clean-lookup (list " " "<" ">" "?" "|" "*" "/" "\\" "\"")
+(defvar elyo-pydyn-path-clean-lookup (list " " "<" ">" "?" "|" "*" "/" "\\" "\"")
   "Not allowed characters in for directory or file path.")
 
 
-(defvar elyo-path-name-separator "_"
+(defvar elyo-pydyn-path-name-separator "_"
   "Character to separate names and not allowed names.")
 
 
-(defun elyo--path-py-abbrev-of (node-info python-maps)
+(defun elyo-pydyn--path-py-abbrev-of (node-info python-maps)
   "Return abbrev from PYTHON-MAPS of python engine in NODE-INFO."
   (catch 'found-it
     (dolist (py-map python-maps)
@@ -242,11 +242,11 @@
         (throw 'found-it (plist-get py-map :py-short))))))
 
 
-(defun elyo--path-clean-name (value)
-  "Return cleaned VALUE with all `elyo-path-clean-lookup' replaced."
-  (dolist (replace-value elyo-path-clean-lookup)
+(defun elyo-pydyn--path-clean-name (value)
+  "Return cleaned VALUE with all `elyo-pydyn-path-clean-lookup' replaced."
+  (dolist (replace-value elyo-pydyn-path-clean-lookup)
     (setq value (string-replace replace-value
-                                elyo-path-name-separator
+                                elyo-pydyn-path-name-separator
                                 value)))
   ;; Because of multiple replacements is it
   ;; possible to have more then connected.
@@ -255,19 +255,19 @@
                "[__]+" "_" value)))
 
 
-(defun elyo-path-export-name (node-info python-maps)
+(defun elyo-pydyn-path-export-name (node-info python-maps)
   "Return export name created from NODE-INFO and PYTHON-MAPS."
-  (s-join elyo-path-name-separator ;; join names together with _
-          (list (elyo--path-clean-name (plist-get node-info :name))
-                (elyo--path-py-abbrev-of node-info python-maps)
-                (elyo--path-clean-name (plist-get node-info :node-id)))))
+  (s-join elyo-pydyn-path-name-separator ;; join names together with _
+          (list (elyo-pydyn--path-clean-name (plist-get node-info :name))
+                (elyo-pydyn--path-py-abbrev-of node-info python-maps)
+                (elyo-pydyn--path-clean-name (plist-get node-info :node-id)))))
 
 
-(defun elyo-path-export-file-name (node-info python-maps)
+(defun elyo-pydyn-path-export-file-name (node-info python-maps)
   "Return export file name created from NODE-INFO and PYTHON-MAPS."
-  (let ((file-name (elyo-path-export-name node-info python-maps)))
+  (let ((file-name (elyo-pydyn-path-export-name node-info python-maps)))
     (s-downcase (concat file-name "." elyo-python-extension))))
 
 
-(provide 'elyo-path)
-;;; elyo-path.el ends here
+(provide 'elyo-pydyn-path)
+;;; elyo-pydyn-path.el ends here

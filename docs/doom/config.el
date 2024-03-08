@@ -29,14 +29,14 @@
 ;;;###autoload
 (defun pydyn-python-mode-setup ()
   "Hook to setup ELYO PYTHON MINOR MODE."
-  (when (elyo-not-converting?)
+  (when (elyo-pydyn-not-processing?)
     (pydyn-py-activate-venv)
     (pydyn-formatter-config)
     (pydyn-pyright-config)
-    (when (or (elyo-is-python-2? node-engine)
-              (elyo-is-python-intern?))
+    (when (or (elyo-pydyn-is-python-2? node-engine)
+              (elyo-pydyn-is-python-intern?))
       (pydyn-py2-config))
-    (when (elyo-is-python-3? node-engine)
+    (when (elyo-pydyn-is-python-3? node-engine)
       (pydyn-py3-config))
     (message "ELYO-PYTHON setup")))
 
@@ -45,8 +45,8 @@
 (defun elyo-file-find-uuid-in-library ()
   "Return preview completion with references of custom node."
   (interactive)
-  (when (and (elyo-is-python-export?) (elyo-dynamo-is-custom?))
-    (let ((file-info (elyo-convert-dynamo-file-info)))
+  (when (and (elyo-pydyn-is-python-export?) (elyo-dynamo-is-custom?))
+    (let ((file-info (elyo-pydyn-dynamo-file-info)))
       (+vertico-file-search
         :query (concat "\"FunctionSignature\": \""
                        (plist-get file-info :node-id) "\",")
@@ -77,8 +77,8 @@
   :hook (python-mode . elyo-python-mode-activate)
   :init
   (add-hook 'elyo-python-mode-hook 'pydyn-python-mode-setup)
-  (add-hook 'elyo-convert-start-hook 'pydyn-python-convert-start-h)
-  (add-hook 'elyo-convert-end-hook 'pydyn-python-convert-end-h)
+  (add-hook 'elyo-pydyn-process-start-hook 'pydyn-python-convert-start-h)
+  (add-hook 'elyo-pydyn-process-end-hook 'pydyn-python-convert-end-h)
   (pydyn-formatter-config-add)
   :config
   (setq pydyn-venv-path "<Pfad zur VENV-Ordner>"
@@ -130,14 +130,14 @@
          :desc "Replace python in Node"        :n "n" #'elyo-python-to-dynamo-node
          :desc "Replace python in Script"      :n "s" #'elyo-python-to-dynamo-script
          :desc "Replace python in Folder"      :n "S" #'elyo-python-to-dynamo-folder
-         :desc "Tabify Buffer"                 :n "t" #'elyo-buffer-tabify
-         :desc "Untabify"                      :n "T" #'elyo-buffer-untabify
+         :desc "Tabify Buffer"                 :n "t" #'elyo-pydyn-buffer-tabify
+         :desc "Untabify"                      :n "T" #'elyo-pydyn-buffer-untabify
          :desc "Toggle type: ignore"           :ni "y" #'elyo-python-ignore-toggle
          )))
 
 
 (defun pydyn-dynamo-format-maybe-inhibit-h ()
-  (elyo-is-dynamo?))
+  (elyo-pydyn-is-dynamo?))
 
 (defvar pydyn--dynamo-disable-hook nil
   "Variable to store value of other mode hook.")
@@ -166,8 +166,8 @@
 
   (add-to-list 'apheleia-inhibit-functions 'pydyn-dynamo-format-maybe-inhibit-h)
   (add-hook 'elyo-dynamo-mode-hook 'pydyn-dynamo-mode-setup)
-  (add-hook 'elyo-convert-start-hook 'pydyn-dynamo-convert-start-h)
-  (add-hook 'elyo-convert-end-hook 'pydyn-dynamo-convert-end-h)
+  (add-hook 'elyo-pydyn-process-start-hook 'pydyn-dynamo-convert-start-h)
+  (add-hook 'elyo-pydyn-process-end-hook 'pydyn-dynamo-convert-end-h)
 
   (map! :map json-mode-map
         :localleader

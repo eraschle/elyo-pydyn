@@ -25,7 +25,7 @@
 ;;
 ;;; Code:
 
-(require 'elyo-utils)
+(require 'elyo-pydyn-utils)
 (require 'elyo-python)
 (require 'ws-butler)
 
@@ -76,13 +76,13 @@
 (defun elyo-dynamo-indent-width-setup ()
   "Set indent with in current buffer."
   (when elyo-dynamo-indent-width
-    (elyo-indent-width-setup elyo-dynamo-indent-width)))
+    (elyo-pydyn-indent-width-set elyo-dynamo-indent-width)))
 
 
 (defun elyo-dynamo--node-info-or-error ()
   "Switch to Python file of code at current point if exists."
-  (elyo-is-dynamo-or-error)
-  (let ((node-info (elyo-json-python-at-point)))
+  (elyo-pydyn-is-dynamo-or-error)
+  (let ((node-info (elyo-pydyn-python-node-get)))
     (unless node-info
       (user-error "Current point is NOT inside a PYTHON node!!!"))
     node-info))
@@ -92,20 +92,20 @@
 (defun elyo-dynamo-goto-python ()
   "Switch to Python file of code at current point if exists."
   (interactive)
-  (let ((path (elyo-convert-export-path
+  (let ((path (elyo-pydyn-export-path
                (elyo-dynamo--node-info-or-error))))
     (unless (file-exists-p path)
       (user-error "File %s does not exists in %s"
                   (file-name-base path)
                   (file-name-parent-directory path)))
-    (switch-to-buffer-other-window (elyo-buffer-by path))))
+    (switch-to-buffer-other-window (elyo-pydyn-buffer-by path))))
 
 
 ;;;###autoload
 (defun elyo-dynamo-python-code-preview ()
   "Jump to selected node in current buffer."
   (interactive)
-  (let ((buffer (elyo-convert-preview-buffer
+  (let ((buffer (elyo-pydyn-preview-buffer
                  (elyo-dynamo--node-info-or-error))))
     (switch-to-buffer-other-window
      (with-current-buffer buffer
@@ -121,19 +121,19 @@
 ;;;###autoload
 (defun elyo-dynamo-at-point-to-python (switch-or-kill)
   "Export python code at point and SWITCH-OR-KILL export buffer."
-  (interactive (list (elyo-choose-switch-or-kill "Python")))
+  (interactive (list (elyo-pydyn-choose-switch-or-kill "Python")))
   (unwind-protect
       (let ((node-info (elyo-dynamo--node-info-or-error))
-            (switch (elyo--is-switch switch-or-kill))
-            (other-win (elyo--is-switch-other switch-or-kill))
-            (kill (elyo--is-kill switch-or-kill)))
-        (elyo-disable-lsp-clients)
-        (elyo-save-buffer-of (elyo-convert-node-to-python
-                              node-info 'elyo-python-convert-clean)
-                             switch other-win kill))
-    (elyo-enable-lsp-clients)
-    (when (or (elyo--is-switch switch-or-kill)
-              (elyo--is-switch-other switch-or-kill))
+            (switch (elyo-pydyn-is-switch switch-or-kill))
+            (other-win (elyo-pydyn-is-switch-other switch-or-kill))
+            (kill (elyo-pydyn-is-kill switch-or-kill)))
+        (elyo-pydyn-disable-lsp-clients)
+        (elyo-pydyn-buffer-save (elyo-pydyn-convert-node-to-python
+                                 node-info 'elyo-python-convert-clean)
+                                switch other-win kill))
+    (elyo-pydyn-enable-lsp-clients)
+    (when (or (elyo-pydyn-is-switch switch-or-kill)
+              (elyo-pydyn-is-switch-other switch-or-kill))
       (elyo-python-mode-on))))
 
 
@@ -141,22 +141,22 @@
 (defun elyo-dynamo-script-to-python (file-path switch-or-kill)
   "Export python node in FILE-PATH and SWITCH-OR-KILL to export buffer."
   (interactive (list (elyo-selection-get
-                      (elyo-dynamo-files-in elyo-source-root t)
+                      (elyo-pydyn-dynamo-files-in elyo-source-root t)
                       "Select Dynamo file:" elyo-source-root)
-                     (elyo-choose-switch-or-kill "Python")))
-  (elyo-is-dynamo-or-error file-path)
+                     (elyo-pydyn-choose-switch-or-kill "Python")))
+  (elyo-pydyn-is-dynamo-or-error file-path)
   (unwind-protect
       (progn
-        (elyo-disable-lsp-clients)
-        (let ((buffer (elyo-convert-to-python
+        (elyo-pydyn-disable-lsp-clients)
+        (let ((buffer (elyo-pydyn-convert-to-python
                        file-path 'elyo-python-convert-clean))
-              (switch (elyo--is-switch switch-or-kill))
-              (other-win (elyo--is-switch-other switch-or-kill))
-              (kill (elyo--is-kill switch-or-kill)))
-          (elyo-save-buffer-of buffer switch other-win kill)))
-    (elyo-enable-lsp-clients)
-    (when (or (elyo--is-switch switch-or-kill)
-              (elyo--is-switch-other switch-or-kill))
+              (switch (elyo-pydyn-is-switch switch-or-kill))
+              (other-win (elyo-pydyn-is-switch-other switch-or-kill))
+              (kill (elyo-pydyn-is-kill switch-or-kill)))
+          (elyo-pydyn-buffer-save buffer switch other-win kill)))
+    (elyo-pydyn-enable-lsp-clients)
+    (when (or (elyo-pydyn-is-switch switch-or-kill)
+              (elyo-pydyn-is-switch-other switch-or-kill))
       (elyo-python-mode-on))))
 
 
@@ -167,23 +167,23 @@ SWITCH-OR-KILL last export buffer afterwards."
   (interactive (list (read-directory-name
                       "Export python to directory? "
                       elyo-source-root)
-                     (elyo-choose-switch-or-kill "Python")))
-  (elyo-is-source-or-error directory)
+                     (elyo-pydyn-choose-switch-or-kill "Python")))
+  (elyo-pydyn-is-source-or-error directory)
   (unwind-protect
       (let ((buffer nil)
-            (switch (elyo--is-switch switch-or-kill))
-            (other-win (elyo--is-switch-other switch-or-kill))
-            (kill (elyo--is-kill switch-or-kill)))
-        (elyo-disable-lsp-clients)
-        (dolist (file-path (elyo-dynamo-files-in directory))
-          (when (elyo-is-dynamo? file-path)
-            (when buffer (elyo-save-buffer-of buffer nil nil t))
-            (setq buffer (elyo-convert-to-python
+            (switch (elyo-pydyn-is-switch switch-or-kill))
+            (other-win (elyo-pydyn-is-switch-other switch-or-kill))
+            (kill (elyo-pydyn-is-kill switch-or-kill)))
+        (elyo-pydyn-disable-lsp-clients)
+        (dolist (file-path (elyo-pydyn-dynamo-files-in directory))
+          (when (elyo-pydyn-is-dynamo? file-path)
+            (when buffer (elyo-pydyn-buffer-save buffer nil nil t))
+            (setq buffer (elyo-pydyn-convert-to-python
                           file-path 'elyo-python-convert-clean))))
-        (elyo-save-buffer-of buffer switch other-win kill))
-    (elyo-enable-lsp-clients)
-    (when (or (elyo--is-switch switch-or-kill)
-              (elyo--is-switch-other switch-or-kill))
+        (elyo-pydyn-buffer-save buffer switch other-win kill))
+    (elyo-pydyn-enable-lsp-clients)
+    (when (or (elyo-pydyn-is-switch switch-or-kill)
+              (elyo-pydyn-is-switch-other switch-or-kill))
       (elyo-python-mode-on))))
 
 
@@ -202,7 +202,7 @@ SWITCH-OR-KILL last export buffer afterwards."
 
 (defun elyo-dynamo--select-node ()
   "Return node-info selected by the user."
-  (let* ((node-infos (elyo-json-python-infos :name))
+  (let* ((node-infos (elyo-pydyn-python-nodes-get :name))
          (completions-format 'vertical)
          (completions-sort 'alphabetical)
          (selected (completing-read
@@ -219,17 +219,17 @@ SWITCH-OR-KILL last export buffer afterwards."
 (defun elyo-dynamo-jump-to-node ()
   "Jump to selected node in current buffer."
   (interactive)
-  (elyo-is-dynamo-or-error)
+  (elyo-pydyn-is-dynamo-or-error)
   (let ((node-info (elyo-dynamo--select-node)))
-    (elyo-json-goto-line (plist-get node-info :node-id)
-                         :code-line)))
+    (elyo-pydyn-json-goto-line (plist-get node-info :node-id)
+                               :code-line)))
 
 
 (defun elyo-dynamo--clean-orphan (file-path)
   "Delete python file where source node in Dynamo FILE-PATH does not exist anymore."
-  (let ((export-path (elyo-python-files-in
-                      (elyo-path-export-folder file-path)))
-        (node-paths (elyo-convert-export-path-all file-path)))
+  (let ((export-path (elyo-pydyn-python-files-in
+                      (elyo-pydyn-path-export-folder file-path)))
+        (node-paths (elyo-pydyn-export-path-all file-path)))
     (dolist (path-wo-src (seq-difference export-path node-paths))
       (when (file-exists-p path-wo-src)
         (delete-file path-wo-src nil)))))
@@ -239,14 +239,14 @@ SWITCH-OR-KILL last export buffer afterwards."
 (defun elyo-dynamo-clean-orphan-code-file (&optional file-path)
   "Delete python files of not existing nodes of Dynamo FILE-PATH."
   (interactive (list (elyo-selection-get
-                      (elyo-dynamo-files-in elyo-source-root t)
+                      (elyo-pydyn-dynamo-files-in elyo-source-root t)
                       "Select Dynamo file:" elyo-source-root)))
-  (elyo-is-source-or-error file-path)
+  (elyo-pydyn-is-source-or-error file-path)
   (when (yes-or-no-p "Are you sure to delete python-files??")
     (unwind-protect
-        (progn (elyo-disable-lsp-clients)
+        (progn (elyo-pydyn-disable-lsp-clients)
                (elyo-dynamo--clean-orphan file-path))
-      (elyo-enable-lsp-clients))))
+      (elyo-pydyn-enable-lsp-clients))))
 
 
 ;;;###autoload
@@ -255,44 +255,44 @@ SWITCH-OR-KILL last export buffer afterwards."
   (interactive (list (read-directory-name
                       "Delete python files without node in? "
                       elyo-source-root)))
-  (elyo-is-source-or-error directory)
+  (elyo-pydyn-is-source-or-error directory)
   (unwind-protect
       (progn
-        (elyo-disable-lsp-clients)
-        (dolist (file-path (elyo-dynamo-files-in directory t))
+        (elyo-pydyn-disable-lsp-clients)
+        (dolist (file-path (elyo-pydyn-dynamo-files-in directory t))
           (elyo-dynamo--clean-orphan file-path)))
-    (elyo-enable-lsp-clients)))
+    (elyo-pydyn-enable-lsp-clients)))
 
 
 ;;;###autoload
 (defun elyo-dynamo-buffer-cache-reset ()
   "Reset global buffer cache."
   (interactive)
-  (elyo-json-buffer-cache-reset))
+  (elyo-pydyn-buffer-cache-reset))
 
 
 ;;;###autoload
 (defun elyo-dynamo-file-cache-reset ()
   "Reset node cache of FILE-PATH in buffer-cache."
   (interactive)
-  (elyo-json-node-cache-reset buffer-file-name))
+  (elyo-pydyn-node-cache-reset buffer-file-name))
 
 
 (defun elyo-dynamo--cache-reset-h ()
   "Reset node cache for current file."
-  (when (elyo-is-dynamo?)
-    (elyo-json-node-cache-reset buffer-file-name)))
+  (when (elyo-pydyn-is-dynamo?)
+    (elyo-pydyn-node-cache-reset buffer-file-name)))
 
 
 (defun elyo-dynamo--cache-remove-h ()
   "Reset node cache for current file."
-  (when (elyo-is-dynamo-source?)
-    (elyo-json-node-cache-reset buffer-file-name))
+  (when (elyo-pydyn-is-dynamo-source?)
+    (elyo-pydyn-node-cache-reset buffer-file-name))
   (unless (seq-some
            (lambda (buf)
-             (elyo-is-dynamo-source? (buffer-file-name buf)))
+             (elyo-pydyn-is-dynamo-source? (buffer-file-name buf)))
            (buffer-list))
-    (elyo-json-buffer-cache-reset)))
+    (elyo-pydyn-buffer-cache-reset)))
 
 
 (define-minor-mode elyo-dynamo-mode
@@ -306,13 +306,13 @@ SWITCH-OR-KILL last export buffer afterwards."
   (add-hook 'kill-buffer-hook 'elyo-dynamo--cache-remove-h)
 
   (when (and elyo-dynamo-mode
-             (elyo-not-converting?))
+             (elyo-pydyn-not-processing?))
     (elyo-dynamo-indent-width-setup)
     (message "ELYO DYNAMO")))
 
 
 ;;;###autoload
-(defun elyo-is-json-mode? ()
+(defun elyo-pydyn-is-json-mode? ()
   "Return non-nil when active major mode is `json-mode'."
   (or (equal major-mode 'json-mode)
       (derived-mode-p 'json-mode)))
@@ -321,8 +321,8 @@ SWITCH-OR-KILL last export buffer afterwards."
 ;;;###autoload
 (defun elyo-dynamo-json-config ()
   "Setup JSON file to work for minor modes."
-  (when (and (elyo-is-json-mode?)
-             (elyo-is-dynamo?))
+  (when (and (elyo-pydyn-is-json-mode?)
+             (elyo-pydyn-is-dynamo?))
     (setq-local require-final-newline nil
                 so-long--inhibited t)))
 
@@ -331,9 +331,9 @@ SWITCH-OR-KILL last export buffer afterwards."
 (defun elyo-dynamo-mode-activate ()
   "Activate and config `elyo-dynamo-mode' if possible."
   (elyo-dynamo-json-config)
-  (when (and (elyo-is-json-mode?)
-             (elyo-is-dynamo?)
-             (elyo-is-dynamo-source?))
+  (when (and (elyo-pydyn-is-json-mode?)
+             (elyo-pydyn-is-dynamo?)
+             (elyo-pydyn-is-dynamo-source?))
     (elyo-dynamo-mode 1)))
 
 

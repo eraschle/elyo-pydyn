@@ -40,7 +40,7 @@
 
 
 (defun pydyn-formatter-maybe-inhibit-h ()
-  elyo-convert-process-running)
+  elyo-pydyn-processing)
 
 ;;;###autoload
 (defun pydyn-formatter-config-add ()
