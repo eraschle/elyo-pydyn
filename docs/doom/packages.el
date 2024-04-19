@@ -1,5 +1,5 @@
 ;; -*- no-byte-compile: t; -*-
-;;; elyp/dynamo/packages.el
+;;; elyo/dynamo/packages.el
 
 ;; MIT License
 

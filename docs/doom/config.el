@@ -29,14 +29,14 @@
 ;;;###autoload
 (defun pydyn-python-mode-setup ()
   "Hook to setup ELYO PYTHON MINOR MODE."
-  (when (elyo-not-converting?)
+  (when (elyo-pydyn-not-processing?)
     (pydyn-py-activate-venv)
     (pydyn-formatter-config)
     (pydyn-pyright-config)
-    (when (or (elyo-is-python-2? node-engine)
-              (elyo-is-python-intern?))
+    (when (or (elyo-pydyn-is-python-2? node-engine)
+              (elyo-pydyn-is-python-source?))
       (pydyn-py2-config))
-    (when (elyo-is-python-3? node-engine)
+    (when (elyo-pydyn-is-python-3? node-engine)
       (pydyn-py3-config))
     (message "ELYO-PYTHON setup")))
 
@@ -45,8 +45,8 @@
 (defun elyo-file-find-uuid-in-library ()
   "Return preview completion with references of custom node."
   (interactive)
-  (when (and (elyo-is-python-export?) (elyo-dynamo-is-custom?))
-    (let ((file-info (elyo-convert-dynamo-file-info)))
+  (when (and (elyo-pydyn-is-python-export?) (elyo-dynamo-is-custom?))
+    (let ((file-info (elyo-pydyn-dynamo-file-info)))
       (+vertico-file-search
         :query (concat "\"FunctionSignature\": \""
                        (plist-get file-info :node-id) "\",")
@@ -60,7 +60,7 @@
   "Hooks run before convert process has started."
   (setq pydyn--python-disable-hook json-mode-hook
         json-mode-hook nil)
-  ;; Will be overwriten/deleted after convert file
+  ;; Will be overwritten/deleted after convert file
   (add-hook 'json-mode-hook #'elyo-dynamo-json-config))
 
 (defun pydyn-python-convert-end-h ()
@@ -77,8 +77,8 @@
   :hook (python-mode . elyo-python-mode-activate)
   :init
   (add-hook 'elyo-python-mode-hook 'pydyn-python-mode-setup)
-  (add-hook 'elyo-convert-start-hook 'pydyn-python-convert-start-h)
-  (add-hook 'elyo-convert-end-hook 'pydyn-python-convert-end-h)
+  (add-hook 'elyo-pydyn-process-start-hook 'pydyn-python-convert-start-h)
+  (add-hook 'elyo-pydyn-process-end-hook 'pydyn-python-convert-end-h)
   (pydyn-formatter-config-add)
   :config
   (setq pydyn-venv-path "<Pfad zur VENV-Ordner>"
@@ -101,14 +101,14 @@
                                          "Assign your output to the OUT variable."
                                          "Weisen Sie Ihre Ausgabe der OUT-Variablen zu.")
 
-        ;; A tyoe: ignore is added if one regex match
+        ;; A type: ignore is added if one regex match
         elyo-python-type-ignore-regex (list elyo-dynamo-input-regex
                                             "import [a-zA-z ,]*Enum"
                                             "UnwrapElement(.*)"
                                             "clr.Reference\[[a-zA-Z]+\]\(\)"
                                             "List\[[a-zA-Z]+\]\(.*\)")
 
-        ;; A tyoe: ignore is added if a row contain a item in this list
+        ;; A type: ignore is added if a row contain a item in this list
         elyo-python-type-ignore-contain (list "dataEnteringNode = IN"
                                               "clr.ImportExtensions(Revit.Elements)"
                                               "clr.ImportExtensions(Revit.GeometryConversion)"
@@ -130,14 +130,14 @@
          :desc "Replace python in Node"        :n "n" #'elyo-python-to-dynamo-node
          :desc "Replace python in Script"      :n "s" #'elyo-python-to-dynamo-script
          :desc "Replace python in Folder"      :n "S" #'elyo-python-to-dynamo-folder
-         :desc "Tabify Buffer"                 :n "t" #'elyo-buffer-tabify
-         :desc "Untabify"                      :n "T" #'elyo-buffer-untabify
+         :desc "Tabify Buffer"                 :n "t" #'elyo-pydyn-buffer-tabify
+         :desc "Untabify"                      :n "T" #'elyo-pydyn-buffer-untabify
          :desc "Toggle type: ignore"           :ni "y" #'elyo-python-ignore-toggle
          )))
 
 
 (defun pydyn-dynamo-format-maybe-inhibit-h ()
-  (elyo-is-dynamo?))
+  (elyo-pydyn-is-dynamo?))
 
 (defvar pydyn--dynamo-disable-hook nil
   "Variable to store value of other mode hook.")
@@ -166,13 +166,13 @@
 
   (add-to-list 'apheleia-inhibit-functions 'pydyn-dynamo-format-maybe-inhibit-h)
   (add-hook 'elyo-dynamo-mode-hook 'pydyn-dynamo-mode-setup)
-  (add-hook 'elyo-convert-start-hook 'pydyn-dynamo-convert-start-h)
-  (add-hook 'elyo-convert-end-hook 'pydyn-dynamo-convert-end-h)
+  (add-hook 'elyo-pydyn-process-start-hook 'pydyn-dynamo-convert-start-h)
+  (add-hook 'elyo-pydyn-process-end-hook 'pydyn-dynamo-convert-end-h)
 
   (map! :map json-mode-map
         :localleader
         (:prefix ("y" . "elyo BIM")
-         :desc "Script to Pyhton"              :n "s" #'elyo-dynamo-script-to-python
+         :desc "Script to Python"              :n "s" #'elyo-dynamo-script-to-python
          :desc "Folder To Python"              :n "f" #'elyo-dynamo-folder-to-python
          :desc "Jump to node"                  :n "j" #'elyo-dynamo-jump-to-node
          :desc "Preview node"                  :n "p" #'elyo-dynamo-python-code-preview

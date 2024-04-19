@@ -229,7 +229,7 @@ exec "$SHELL"
 
 ~Terminal Neustart WICHTIG~
 
-Dynamo BIM verwendet meines Wissen Python 3.8 oder 3.9 je nach Authoren-Software
+Dynamo BIM verwendet meines Wissen Python 3.8 oder 3.9 je nach Autoren-Software
 #+begin_src bash :tangle no
 pyenv install --list
 
@@ -248,8 +248,8 @@ pip install --upgrade pip
 pip install pytest isort pipenv nose black pyflakes autopep8
 #+end_src
 
-*** Poetry (Optinal)
-Erleichtert das verwalten und Installation von pip Packages für Prjekte.
+*** Poetry (Optional)
+Erleichtert das verwalten und Installation von pip Packages für Projekte.
 **** [[https://python-poetry.org/docs/#installation][Installation]]
 
 #+begin_src bash :tangle no :results no
@@ -267,7 +267,7 @@ export PATH="$HOME/.local/share/pypoetry/venv/bin/poetry:$PATH"
 Anstatt =mspyls= muss =pyright= als LSP Server installiert.
 Die Installation kann Global oder pro User ausgeführt werden...
 **** Globale Installation
-Benötigt die Installtion von Node.js
+Benötigt die Installation von Node.js
 #+begin_src bash
 sudo npm install -g pyright
 #+end_src
@@ -477,7 +477,7 @@ emacs --version
 
 ** =DOOM=
 *** Installation
-**** Doom clonen
+**** Doom clone
 Mehr Informationen hier entnehmen [[https://github.com/doomemacs/doomemacs/blob/develop/docs/getting_started.org#with-wsl--ubuntu-1804-lts][Anleitung DOOM GitHub]]
 
 #+begin_src bash  :tangle no
@@ -494,7 +494,7 @@ export PATH="$HOME/.config/emacs/bin:$PATH"
 
 **** Doom installieren
 Nun kann der Befehl ausgeführt werden, nachdem die Fragen beantwortet wurden, wird Doom installiert.
-Dies kann eine Weile daueren, sobald doom sync ausgeführt wurde, kann doom gestartet werden.
+Dies kann eine Weile dauern, sobald doom sync ausgeführt wurde, kann doom gestartet werden.
 
 #+begin_src bash  :tangle no
 doom install
@@ -532,7 +532,7 @@ Wenn die Namen übernommen wurden, dann sind keine Anpassungen nötig, ansonsten
 =package.el= die zweite Zeile
 #+begin_src emacs-lisp
 ;; -*- no-byte-compile: t; -*-
-;;; elyp/dynamo/packages.el
+;;; elyo/dynamo/packages.el
 #+end_src
 
 **** init.el anpassen
@@ -546,7 +546,7 @@ dynamo
 #+end_src
 
 **** Package installieren
-Datei speichern und doom schliessen (SPC q q) anschliessend im Terminal den Befehl ausführen, damit das Package von GIT geklonet und installiert wird.
+Datei speichern und doom schliessen (SPC q q) anschliessend im Terminal den Befehl ausführen, damit das Package von GIT geklont und installiert wird.
 
 #+begin_src bash  :tangle no
 doom sync
