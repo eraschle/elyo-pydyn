@@ -226,12 +226,13 @@ SWITCH-OR-KILL last export buffer afterwards."
 
 (defun elyo-dynamo--clean-orphan (file-path)
   "Delete python file where source node in Dynamo FILE-PATH does not exist anymore."
-  (let ((export-path (elyo-pydyn-python-files-in
-                      (elyo-pydyn-path-export-folder file-path)))
-        (node-paths (elyo-pydyn-export-path-all file-path)))
-    (dolist (path-wo-src (seq-difference export-path node-paths))
-      (when (file-exists-p path-wo-src)
-        (delete-file path-wo-src nil)))))
+  (when (elyo-pydyn-json-nodes-exists-p file-path)
+    (let ((export-path (elyo-pydyn-python-files-in
+                        (elyo-pydyn-path-export-folder file-path)))
+          (node-paths (elyo-pydyn-export-path-all file-path)))
+      (dolist (path-wo-src (seq-difference export-path node-paths))
+        (when (file-exists-p path-wo-src)
+          (delete-file path-wo-src nil))))))
 
 
 ;;;###autoload

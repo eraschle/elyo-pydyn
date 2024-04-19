@@ -247,9 +247,18 @@ If AS-STRING is non-nil value contain with surrounding \"."
               (when node-info
                 (push node-info node-cache)))
             (sp-end-of-sexp)))
-        (save-restriction
-          (elyo-pydyn--node-cache-add-names node-cache)))
-      (elyo-pydyn--json-buffer-cache-add file-path node-cache))))
+        (unless (seq-empty-p node-cache)
+          (save-restriction
+            (elyo-pydyn--node-cache-add-names node-cache))))
+      (unless (seq-empty-p node-cache)
+        (elyo-pydyn--json-buffer-cache-add file-path node-cache)))))
+
+
+(defun elyo-pydyn-json-nodes-exists-p (file-path)
+  "Return non-nil when one or more python nodes in FILE-PATH exists."
+  (with-current-buffer (elyo-pydyn-buffer-by file-path)
+    (goto-char (point-min))
+    (search-forward (elyo-pydyn--search-value "PythonScriptNode") nil t)))
 
 
 (defun elyo-pydyn--json-node-infos (file-path)

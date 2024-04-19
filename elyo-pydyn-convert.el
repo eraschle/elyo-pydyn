@@ -187,7 +187,7 @@ CLEAN-CB is applied to clean exported code. Unless last buffer,
       (elyo-pydyn-buffer-tabify)
       (elyo-pydyn-dynamo-encode
        (string-trim (elyo-pydyn-buffer-substring (point-min) (point-max))
-                    "[\n]*" "[\n]*")))))
+                    "[\n]+" "[\n]+")))))
 
 
 (defun elyo-pydyn-convert-python-to-dynamo (code)
